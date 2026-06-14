@@ -1,13 +1,15 @@
 [build-system]
-requires = ["setuptools>=68", "wheel", "setuptools-scm>=8"]
+requires = ["setuptools>=77", "wheel", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pylynqa"
 dynamic = ["version"]
 description = "Python client for the Lynqa API"
+authors = [{ name = "Alexis Pallier", email = "alexis.pallier@petit-robot.bzh" }]
 requires-python = ">=3.9"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 dependencies = [
     "requests>=2.28",
 ]
