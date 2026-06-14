@@ -20,6 +20,11 @@ def url(path: str) -> str:
     return f"{BASE_URL}{path}"
 
 
+def headers(responses, call_num: int) -> dict:
+    """Boilerplate function to return the headers of the request."""
+    return responses.calls[call_num].request.headers
+
+
 def body(responses, call_num: int) -> dict:
     """Boilerplate function to return the body of the response."""
     return json.loads(responses.calls[call_num].request.body)

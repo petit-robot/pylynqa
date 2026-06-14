@@ -35,6 +35,8 @@ https://my.lynqa.smartesting.com/integration.
 
 from __future__ import annotations
 
+from urllib.parse import quote, urlsplit
+
 import requests
 
 from pylynqa.models import (
@@ -46,9 +48,8 @@ from pylynqa.models import (
     TextualData,
 )
 
-DEFAULT_CONSUMER = "petit-robot:pylynqa"
-
 BASE_URL = "https://api.lynqa.smartesting.com"
+DEFAULT_TIMEOUT = 30.0  # Default network timeout (seconds) applied to every request.
 
 ENDPOINT_HEALTH_LIVE = "/health/live"
 ENDPOINT_HEALTH_READY = "/health/ready"
@@ -60,6 +61,9 @@ ENDPOINT_ACCOUNT_CREDITS = "/account/credits"
 ENDPOINT_ACCOUNT_PURCHASES = "/account/purchases"
 ENDPOINT_ACCOUNT_CREDIT_LEDGER = "/account/creditLedger"
 
+_LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
+_PACKAGE_CONSUMER_NAME = "petit-robot:pylynqa"
+
 
 class LynqaClient:
     """Synchronous client for the Lynqa REST API.
@@ -69,8 +73,12 @@ class LynqaClient:
 
     :param api_key: Lynqa API key.
     :param base_url: Base URL of the API. Defaults to the production server ``https://api.lynqa.smartesting.com``.
-        Override for self-hosted or staging environments.
+        Override for self-hosted or staging environments. Must use ``https`` so the API key is never sent in clear
+        text; plain ``http`` is only accepted for loopback hosts (``localhost``, ``127.0.0.1``, ``::1``).
+    :param timeout: Per-request network timeout in seconds (connect + read). Defaults to ``30``. Pass ``None`` to
+        disable (not recommended). Can be overridden per call via the ``timeout`` keyword.
 
+    :raises ValueError: If ``base_url`` is not ``https`` (and not a loopback ``http`` address).
     :raises LynqaClientError: On any non-2xx response from the API.
 
     Example:
@@ -81,19 +89,57 @@ class LynqaClient:
 
     """
 
-    def __init__(self, api_key: str, base_url: str = BASE_URL) -> None:
+    def __init__(
+        self, api_key: str, base_url: str = BASE_URL, timeout: float | tuple[float, float] | None = DEFAULT_TIMEOUT
+    ) -> None:
         """Initialize the client with the given API key and base URL.
 
-        :param api_key: Lynqa API key obtained from
-        :param base_url: Base URL of the API. Defaults to the production
+        :param api_key: Lynqa API key obtained from https://my.lynqa.smartesting.com/integration.
+        :param base_url: Base URL of the API. Defaults to the production server. Must be ``https`` (or loopback http).
+        :param timeout: Default per-request timeout in seconds. Defaults to ``30``.
+
+        :raises ValueError: If ``base_url`` does not use a secure scheme.
         """
+        self._validate_base_url(base_url)
         self._session = requests.Session()
         self._session.headers.update({"x-api-key": api_key})
         self._base_url = base_url.rstrip("/")
+        self._timeout = timeout
+
+    @classmethod
+    def _validate_base_url(cls, base_url: str) -> None:
+        """Reject base URLs that would transmit the API key insecurely.
+
+        Only ``https`` is allowed, except for loopback hosts where plain ``http`` is tolerated for local development.
+
+        :param base_url: Base URL to validate.
+        :raises ValueError: If the scheme is not ``https`` (and the host is not loopback).
+        """
+        parts = urlsplit(base_url)
+        if parts.scheme == "https":
+            return
+        if parts.scheme == "http" and parts.hostname in _LOOPBACK_HOSTS:
+            return
+        raise ValueError(  # ruff: ignore[raise-vanilla-args]
+            f"'base_url' must use https to protect the API key (got {base_url}); "
+            "plain http is only allowed for loopback hosts (localhost, 127.0.0.1, ::1)."
+        )
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _encode_segment(value: str | int) -> str:
+        """URL-encode a single path segment.
+
+        Prevents caller-supplied IDs (e.g. a test run ID) from altering the request path through ``/``, ``..``, ``?``
+        or ``#`` characters.
+
+        :param value: Raw path segment value.
+        :returns: Encoded segment safe to embed in a URL path.
+        """
+        return quote(str(value), safe="")
 
     def _request(self, method: str, path: str, **kwargs) -> requests.Response:
         """Send an authenticated HTTP request.
@@ -107,6 +153,7 @@ class LynqaClient:
         :raises LynqaClientError: If the response status code indicates an error.
         """
         url = f"{self._base_url}{path}"
+        kwargs.setdefault("timeout", self._timeout)
         response = self._session.request(method, url, **kwargs)
         if not response.ok:
             try:
@@ -154,7 +201,6 @@ class LynqaClient:
         context: TestRunContext | None = None,
         guidance: list[TextualData] | None = None,
         attachments: list[CreateAttachment] | None = None,
-        consumer: str = DEFAULT_CONSUMER,
     ) -> str:
         """Execute a manual test run.
 
@@ -166,8 +212,6 @@ class LynqaClient:
         :param context: Optional locale and secrets context.
         :param guidance: Optional global guidance hints for the agent.
         :param attachments: Optional files attached to the test run (base64-encoded).
-        :param consumer: Value for the required ``x-api-consumer`` header. Use a string that identifies the calling
-            system, e.g. ``'jira:my-instance.atlassian.net'``.
 
         :returns: The ID assigned to the new test run.
 
@@ -203,7 +247,7 @@ class LynqaClient:
             "POST",
             ENDPOINT_TEST_RUNS,
             json=body,
-            headers={"x-api-consumer": consumer},
+            headers={"x-api-consumer": _PACKAGE_CONSUMER_NAME},
         ).json()
 
     def add_gherkin_test_run(  # noqa: PLR0913
@@ -215,7 +259,6 @@ class LynqaClient:
         context: TestRunContext | None = None,
         guidance: list[TextualData] | None = None,
         attachments: list[CreateAttachment] | None = None,
-        consumer: str = DEFAULT_CONSUMER,
     ) -> str:
         r"""Execute a Gherkin (BDD) test run.
 
@@ -227,7 +270,6 @@ class LynqaClient:
         :param context: Optional locale and secrets context.
         :param guidance: Optional global guidance hints for the agent.
         :param attachments: Optional files attached to the test run (base64-encoded).
-        :param consumer: Value for the required ``x-api-consumer`` header.
 
         :returns: The ID assigned to the new test run.
 
@@ -261,7 +303,7 @@ class LynqaClient:
             "POST",
             ENDPOINT_TEST_RUNS_GHERKIN,
             json=body,
-            headers={"x-api-consumer": consumer},
+            headers={"x-api-consumer": _PACKAGE_CONSUMER_NAME},
         ).json()
 
     def get_test_run(self, test_run_id: str) -> dict:
@@ -278,7 +320,7 @@ class LynqaClient:
         :raises LynqaClientError: ``401`` authentication failed, ``404`` if not found, ``410`` if expired, ``429`` rate
             limit.
         """
-        return self._request("GET", f"{ENDPOINT_TEST_RUNS}/{test_run_id}").json()
+        return self._request("GET", f"{ENDPOINT_TEST_RUNS}/{self._encode_segment(test_run_id)}").json()
 
     def delete_test_run(self, test_run_id: str) -> None:
         """Delete a test run.
@@ -289,7 +331,7 @@ class LynqaClient:
 
         :raises LynqaClientError: ``401`` authentication failed, ``404`` if not found, ``429`` rate limit.
         """
-        self._request("DELETE", f"{ENDPOINT_TEST_RUNS}/{test_run_id}")
+        self._request("DELETE", f"{ENDPOINT_TEST_RUNS}/{self._encode_segment(test_run_id)}")
 
     def get_test_run_status(self, test_run_id: str) -> dict:
         """Get the overall status of a test run.
@@ -312,7 +354,7 @@ class LynqaClient:
         :raises LynqaClientError: ``401`` authentication failed, ``404`` if not found, ``410`` if expired, ``429`` rate
             limit.
         """
-        return self._request("GET", f"{ENDPOINT_TEST_RUNS}/{test_run_id}/status").json()
+        return self._request("GET", f"{ENDPOINT_TEST_RUNS}/{self._encode_segment(test_run_id)}/status").json()
 
     def get_test_run_full_status(self, test_run_id: str) -> dict:
         """Get the full status of a test run, including per-step reports.
@@ -330,7 +372,7 @@ class LynqaClient:
         :raises LynqaClientError: ``401`` authentication failed, ``404`` if not found, ``410`` if expired, ``429`` rate
             limit.
         """
-        return self._request("GET", f"{ENDPOINT_TEST_RUNS}/{test_run_id}/fullStatus").json()
+        return self._request("GET", f"{ENDPOINT_TEST_RUNS}/{self._encode_segment(test_run_id)}/fullStatus").json()
 
     def stop_test_runs(self, test_run_ids: list[str]) -> dict:
         """Request cancellation of one or more running test executions.
@@ -420,7 +462,10 @@ class LynqaClient:
 
         :raises LynqaClientError: ``401`` authentication failed, ``404`` if not found, ``429`` rate limit.
         """
-        return self._request("GET", f"{ENDPOINT_TEST_RUNS}/{test_run_id}/testSteps/{step_index}").json()
+        return self._request(
+            "GET",
+            f"{ENDPOINT_TEST_RUNS}/{self._encode_segment(test_run_id)}/testSteps/{self._encode_segment(step_index)}",
+        ).json()
 
     # ------------------------------------------------------------------
     # Screenshots
@@ -450,7 +495,10 @@ class LynqaClient:
                 f.write(base64.b64decode(data))
 
         """
-        return self._request("GET", f"{ENDPOINT_TEST_RUNS}/{test_run_id}/screenshots/{screenshot_id}").json()["data"]
+        return self._request(
+            "GET",
+            f"{ENDPOINT_TEST_RUNS}/{self._encode_segment(test_run_id)}/screenshots/{self._encode_segment(screenshot_id)}",
+        ).json()["data"]
 
     # ------------------------------------------------------------------
     # Account
