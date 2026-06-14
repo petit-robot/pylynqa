@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 23 * * 1-5'
 
+permissions:
+  contents: read
+
 jobs:
   quality:
     name: Code quality (Python ${{ matrix.python-version }})

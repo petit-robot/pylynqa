@@ -9,6 +9,7 @@ from responses import matchers
 
 from pylynqa import CreateAttachment, CreateTestStep, LynqaClient, TestData, TestRunContext, TestRunsFilter, TextualData
 from pylynqa.client import (
+    _PACKAGE_CONSUMER_NAME,
     ENDPOINT_ACCOUNT_CREDIT_LEDGER,
     ENDPOINT_ACCOUNT_CREDITS,
     ENDPOINT_ACCOUNT_PURCHASES,
@@ -19,7 +20,7 @@ from pylynqa.client import (
     ENDPOINT_TEST_RUNS_QUERY,
     ENDPOINT_TEST_RUNS_STOP,
 )
-from pylynqa.test import API_KEY, assert_raises_on_error, body, url
+from pylynqa.test import API_KEY, assert_raises_on_error, body, headers, url
 from pylynqa.test.data_set import (
     CREDIT_LEDGER_ENTRIES,
     STEP_REPORT,
@@ -51,6 +52,23 @@ class TestAuthentication:
 
         # Act
         client.get_test_execution_credits()
+
+
+class TestBaseUrlValidation:
+    def test_https_is_accepted(self):
+        """An https base_url is accepted."""
+        LynqaClient(api_key=API_KEY, base_url="https://staging.example.com")
+
+    @pytest.mark.parametrize("base_url", ["http://localhost:8080", "http://127.0.0.1:8080"])
+    def test_loopback_http_is_accepted(self, base_url):
+        """Plain http is tolerated for loopback hosts (local development)."""
+        LynqaClient(api_key=API_KEY, base_url=base_url)
+
+    @pytest.mark.parametrize("base_url", ["http://api.lynqa.smartesting.com", "ftp://example.com", "example.com"])
+    def test_insecure_scheme_is_rejected(self, base_url):
+        """A non-https, non-loopback base_url raises ValueError to protect the API key."""
+        with pytest.raises(ValueError, match="https"):
+            LynqaClient(api_key=API_KEY, base_url=base_url)
 
 
 class TestHealth:
@@ -108,6 +126,7 @@ class TestAddTestRun:
 
         # Assert
         assert test_run_id == TEST_RUN_ID
+        assert headers(responses, 0).get("x-api-consumer") == _PACKAGE_CONSUMER_NAME
 
     def test_sends_optional_fields(self, client, responses):
         """Test."""
@@ -205,6 +224,7 @@ class TestAddGherkinTestRun:
 
         # Assert
         assert run_id == TEST_RUN_ID
+        assert headers(responses, 0).get("x-api-consumer") == _PACKAGE_CONSUMER_NAME
 
     def test_sends_optional_fields(self, client, responses):
         """Test."""
