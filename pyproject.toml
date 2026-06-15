@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pylynqa"
 dynamic = ["version"]
 description = "Python client for the Lynqa API"
+readme = "README.md"
 authors = [{ name = "Alexis Pallier", email = "alexis.pallier@petit-robot.bzh" }]
 requires-python = ">=3.9"
 license = "Apache-2.0"
