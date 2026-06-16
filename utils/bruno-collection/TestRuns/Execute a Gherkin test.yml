@@ -1,0 +1,271 @@
+info:
+  name: Execute a Gherkin test
+  type: http
+  seq: 2
+  tags:
+    - TestRuns
+
+http:
+  method: POST
+  url: "{{baseUrl}}/testRuns/gherkin"
+  headers:
+    - name: x-api-consumer
+      value: petit-robot:bruno
+  body:
+    type: json
+    data: |-
+      {
+        "url": "https://example.com/",
+        "name": "My test name",
+        "context": "",
+        "guidance": [
+          {
+            "text": "The user is between 18 and 49"
+          }
+        ],
+        "attachments": [
+          {
+            "name": "invoice_260313.pdf",
+            "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+          }
+        ],
+        "scenario": "Given the user is connected\nWhen the user search for a book\nThen a list of books is displayed"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const testRunId = res.getBody();
+        if (testRunId) {
+          bru.setVar("testRunId", testRunId);
+          console.log("testRunId captured:", testRunId);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 201 Response
+    description: The test run id
+    request:
+      url: "{{baseUrl}}/testRuns/gherkin"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "scenario": "Given the user is connected\nWhen the user search for a book\nThen a list of books is displayed"
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: "1234"
+  - name: 400 Response
+    description: Test is malformed
+    request:
+      url: "{{baseUrl}}/testRuns/gherkin"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "scenario": "Given the user is connected\nWhen the user search for a book\nThen a list of books is displayed"
+          }
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/testRuns/gherkin"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "scenario": "Given the user is connected\nWhen the user search for a book\nThen a list of books is displayed"
+          }
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 403 Response
+    description: Not enough credits
+    request:
+      url: "{{baseUrl}}/testRuns/gherkin"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "scenario": "Given the user is connected\nWhen the user search for a book\nThen a list of books is displayed"
+          }
+    response:
+      status: 403
+      statusText: Forbidden
+      body:
+        type: text
+        data: ""
+  - name: 422 Response
+    description: URL is not safe
+    request:
+      url: "{{baseUrl}}/testRuns/gherkin"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "scenario": "Given the user is connected\nWhen the user search for a book\nThen a list of books is displayed"
+          }
+    response:
+      status: 422
+      statusText: Unprocessable Entity
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/testRuns/gherkin"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "scenario": "Given the user is connected\nWhen the user search for a book\nThen a list of books is displayed"
+          }
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""

@@ -1,0 +1,29 @@
+info:
+  name: Readiness probe — returns ready status based on Databases and systems availability
+  type: http
+  seq: 2
+  tags:
+    - Health
+
+http:
+  method: GET
+  url: "{{baseUrl}}/health/ready"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    request:
+      url: "{{baseUrl}}/health/ready"
+      method: GET
+    response:
+      status: 200
+      statusText: OK
+      body:
+        type: text
+        data: ""

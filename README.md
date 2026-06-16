@@ -67,6 +67,33 @@ status = client.get_test_run_status(run_id)
 print(status["status"])  # e.g. "running"
 ```
 
+## Bruno Collection
+
+The project provides a Bruno Collection to interact with Lynqa API.
+A Bruno environment named "production" was also provided in addition to the collection.
+
+You can access the collection [here](utils/bruno-collection).
+
+### Prerequisites
+Before using this collection, make sure you have:
+- Bruno 3.4.2+
+- A valid Lynqa API Key that you get once you have a Lynqa account
+
+### Where to put your API Key
+
+To securely use the API, you must configure your API key inside a Bruno environment.
+
+For that you should:
+- Select the environment named "production".
+- Click on "Configure" to get access to the environment variable
+
+In the environment variable:
+- Paste your Lynqa API Key in the Value field
+- Make sure to mark it as Secret (enable the checkbox)
+- Click Save
+
+This ensures your API key is never exposed in Bruno files.
+
 ## Collaboration
 
 This project is at an early stage, so **external contributions are limited for now**. This may be opened up more

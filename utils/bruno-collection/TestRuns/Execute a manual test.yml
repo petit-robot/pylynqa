@@ -1,0 +1,386 @@
+info:
+  name: Execute a manual test
+  type: http
+  seq: 1
+  tags:
+    - TestRuns
+
+http:
+  method: POST
+  url: "{{baseUrl}}/testRuns"
+  headers:
+    - name: x-api-consumer
+      value: petit-robot:bruno
+    - name: x-api-key
+      value: "{{apiKey}}"
+  body:
+    type: json
+    data: |-
+      {
+        "url": "https://google.com/",
+        "name": "Test success Google Maps",
+        "context": {
+          "clientLanguage": "fr-FR, français, fr",
+          "clientDatetime": "Thu Feb 26 2026 09:26:12 GMT+0100 (Central Europe time)"
+        },
+        "guidance": [
+          {
+            "text": "The user is between 18 and 49" 
+          }
+        ],
+        "steps": [
+          {
+            "action": "Accède à Google Maps via https://www.google.com/maps",
+            "expectedResult": "On est sur Google Maps",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ]
+          },
+          {
+            "action": "Cherche le Centre Alma de Rennes en cliquant sur l'icône de recherche \"Centre Alma de Rennes\" dessus",
+            "expectedResult": "Il trouve le Centre Alma de Rennes",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ]
+          }
+        ]
+      }
+      // the guidance had no influence on the test
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const testRunId = res.getBody();
+        if (testRunId) {
+          bru.setVar("testRunId", testRunId);
+          console.log("testRunId captured:", testRunId);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 201 Response
+    description: The test run id
+    request:
+      url: "{{baseUrl}}/testRuns"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "steps": [
+              {
+                "action": "Click on the \"Login\" button",
+                "expectedResult": "Verify that the user is logged-in",
+                "guidance": [
+                  {
+                    "text": "The user is between 18 and 49"
+                  }
+                ],
+                "attachments": [
+                  {
+                    "name": "invoice_260313.pdf",
+                    "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: "1234"
+  - name: 400 Response
+    description: Test is malformed
+    request:
+      url: "{{baseUrl}}/testRuns"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "steps": [
+              {
+                "action": "Click on the \"Login\" button",
+                "expectedResult": "Verify that the user is logged-in",
+                "guidance": [
+                  {
+                    "text": "The user is between 18 and 49"
+                  }
+                ],
+                "attachments": [
+                  {
+                    "name": "invoice_260313.pdf",
+                    "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/testRuns"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "steps": [
+              {
+                "action": "Click on the \"Login\" button",
+                "expectedResult": "Verify that the user is logged-in",
+                "guidance": [
+                  {
+                    "text": "The user is between 18 and 49"
+                  }
+                ],
+                "attachments": [
+                  {
+                    "name": "invoice_260313.pdf",
+                    "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 403 Response
+    description: Not enough credits
+    request:
+      url: "{{baseUrl}}/testRuns"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "steps": [
+              {
+                "action": "Click on the \"Login\" button",
+                "expectedResult": "Verify that the user is logged-in",
+                "guidance": [
+                  {
+                    "text": "The user is between 18 and 49"
+                  }
+                ],
+                "attachments": [
+                  {
+                    "name": "invoice_260313.pdf",
+                    "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 403
+      statusText: Forbidden
+      body:
+        type: text
+        data: ""
+  - name: 422 Response
+    description: URL is not safe
+    request:
+      url: "{{baseUrl}}/testRuns"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "steps": [
+              {
+                "action": "Click on the \"Login\" button",
+                "expectedResult": "Verify that the user is logged-in",
+                "guidance": [
+                  {
+                    "text": "The user is between 18 and 49"
+                  }
+                ],
+                "attachments": [
+                  {
+                    "name": "invoice_260313.pdf",
+                    "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 422
+      statusText: Unprocessable Entity
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/testRuns"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "url": "https://example.com/",
+            "name": "My test name",
+            "context": "",
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "attachments": [
+              {
+                "name": "invoice_260313.pdf",
+                "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+              }
+            ],
+            "steps": [
+              {
+                "action": "Click on the \"Login\" button",
+                "expectedResult": "Verify that the user is logged-in",
+                "guidance": [
+                  {
+                    "text": "The user is between 18 and 49"
+                  }
+                ],
+                "attachments": [
+                  {
+                    "name": "invoice_260313.pdf",
+                    "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""

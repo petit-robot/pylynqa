@@ -1,0 +1,148 @@
+info:
+  name: Get the status report of a specific step within a test run
+  type: http
+  seq: 1
+  tags:
+    - TestSteps
+
+http:
+  method: GET
+  url: "{{baseUrl}}/testRuns/:testRunId/testSteps/:stepIndex"
+  headers:
+    - name: x-api-key
+      value: "{{apiKey}}"
+  params:
+    - name: stepIndex
+      value: "0"
+      type: path
+      description: Index of the step to retrieve
+    - name: testRunId
+      value: "{{testRunId}}"
+      type: path
+      description: ID of the test run
+  auth:
+    type: apikey
+    key: x-api-key
+    value: "{{apiKey}}"
+    placement: header
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: Status report of the requested step, including executed commands and the outcome (timestamps, assertions report, verdict cause, or error depending on status).
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId/testSteps/:stepIndex"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: stepIndex
+          value: "0"
+          type: path
+          description: Index of the step to retrieve
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test run
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "commands": [
+              {
+                "name": "fill",
+                "value": "Lorem ipsum",
+                "htmlElement": "The search field",
+                "screenshot": [
+                  "4b111ba4-c236-4770-67bf-0f17d0230e47"
+                ]
+              }
+            ],
+            "status": "success",
+            "start": "2025-09-18T09:01:02.000Z",
+            "end": "2025-09-18T09:01:05.500Z",
+            "assertionsReport": "",
+            "testVerdictCause": "Expected URL to contain /dashboard",
+            "error": "internal"
+          }
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId/testSteps/:stepIndex"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: stepIndex
+          value: "0"
+          type: path
+          description: Index of the step to retrieve
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test run
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: Test run step not found
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId/testSteps/:stepIndex"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: stepIndex
+          value: "0"
+          type: path
+          description: Index of the step to retrieve
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test run
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId/testSteps/:stepIndex"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: stepIndex
+          value: "0"
+          type: path
+          description: Index of the step to retrieve
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test run
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""
