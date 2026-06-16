@@ -1,11 +1,11 @@
 # pylynqa
 
 [![CI](https://github.com/petit-robot/pylynqa/actions/workflows/ci.yml/badge.svg)](https://github.com/petit-robot/pylynqa/actions/workflows/ci.yml)
+[![Acceptance test](https://github.com/petit-robot/pylynqa/actions/workflows/acceptance.yml/badge.svg)](https://github.com/petit-robot/pylynqa/actions/workflows/acceptance.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)
 
 **pylynqa** is a Python client for the [Lynqa](https://lynqa.smartesting.com) REST API.
-
 
 ![Python/Lynqa connector](docs/python-lynqa.png)
 
@@ -72,7 +72,8 @@ print(status["status"])  # e.g. "running"
 This project is at an early stage, so **external contributions are limited for now**. This may be opened up more
 broadly later as the project matures.
 
-In the meantime, **you are very welcome to open an [issue](https://github.com/petit-robot/pylynqa/issues)** to report a bug or ask any question.
+In the meantime, **you are very welcome to open an [issue](https://github.com/petit-robot/pylynqa/issues)** to report a
+bug or ask any question.
 
 ## License
 
