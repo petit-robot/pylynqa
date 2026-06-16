@@ -1,0 +1,103 @@
+info:
+  name: Delete a test run
+  type: http
+  seq: 4
+  tags:
+    - TestRuns
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/testRuns/:testRunId"
+  headers:
+    - name: x-api-key
+      value: "{{apiKey}}"
+  params:
+    - name: testRunId
+      value: "{{testRunId}}"
+      type: path
+      description: ID of the test run to delete
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 204 Response
+    description: Test run deleted
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId"
+      method: DELETE
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test run to delete
+    response:
+      status: 204
+      statusText: No Content
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId"
+      method: DELETE
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test run to delete
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: Test run not found
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId"
+      method: DELETE
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test run to delete
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId"
+      method: DELETE
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test run to delete
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""

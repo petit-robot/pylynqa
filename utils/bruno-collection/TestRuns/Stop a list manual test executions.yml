@@ -1,0 +1,132 @@
+info:
+  name: Stop a list manual test executions
+  type: http
+  seq: 7
+  tags:
+    - TestRuns
+
+http:
+  method: POST
+  url: "{{baseUrl}}/testRuns/stop"
+  headers:
+    - name: x-api-key
+      value: "{{apiKey}}"
+  body:
+    type: json
+    data: |-
+      {
+        "testRunIds": [
+          "m626fwxopxr489raizu6hjgy",
+          "zcuk4l13zax1piz2h73imct6"
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 202 Response
+    description: Tests will be stopped
+    request:
+      url: "{{baseUrl}}/testRuns/stop"
+      method: POST
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "testRunIds": [
+              "m626fwxopxr489raizu6hjgy",
+              "zcuk4l13zax1piz2h73imct6"
+            ]
+          }
+    response:
+      status: 202
+      statusText: Accepted
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "stoppedTestRunIds": [
+              "m626fwxopxr489raizu6hjgy",
+              "zcuk4l13zax1piz2h73imct6"
+            ]
+          }
+  - name: 400 Response
+    description: Body is malformed
+    request:
+      url: "{{baseUrl}}/testRuns/stop"
+      method: POST
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "testRunIds": [
+              "m626fwxopxr489raizu6hjgy",
+              "zcuk4l13zax1piz2h73imct6"
+            ]
+          }
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/testRuns/stop"
+      method: POST
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "testRunIds": [
+              "m626fwxopxr489raizu6hjgy",
+              "zcuk4l13zax1piz2h73imct6"
+            ]
+          }
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/testRuns/stop"
+      method: POST
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "testRunIds": [
+              "m626fwxopxr489raizu6hjgy",
+              "zcuk4l13zax1piz2h73imct6"
+            ]
+          }
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""

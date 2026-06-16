@@ -1,0 +1,64 @@
+info:
+  name: List Credit Purchases for a specified API Key
+  type: http
+  seq: 2
+  tags:
+    - Account
+
+http:
+  method: GET
+  url: "{{baseUrl}}/account/purchases"
+  headers:
+    - name: x-api-key
+      value: "{{apiKey}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: List of purchases
+    request:
+      url: "{{baseUrl}}/account/purchases"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+    response:
+      status: 200
+      statusText: OK
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/account/purchases"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/account/purchases"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""

@@ -1,0 +1,64 @@
+info:
+  name: Get Credit Ledger for a specified API Key
+  type: http
+  seq: 3
+  tags:
+    - Account
+
+http:
+  method: GET
+  url: "{{baseUrl}}/account/creditLedger"
+  headers:
+    - name: x-api-key
+      value: "{{apiKey}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: List of Credit Ledger entries
+    request:
+      url: "{{baseUrl}}/account/creditLedger"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+    response:
+      status: 200
+      statusText: OK
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/account/creditLedger"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/account/creditLedger"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""

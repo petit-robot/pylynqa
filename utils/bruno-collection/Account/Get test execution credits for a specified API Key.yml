@@ -1,0 +1,67 @@
+info:
+  name: Get test execution credits for a specified API Key
+  type: http
+  seq: 1
+  tags:
+    - Account
+
+http:
+  method: GET
+  url: "{{baseUrl}}/account/credits"
+  headers:
+    - name: x-api-key
+      value: "{{apiKey}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: Test execution credits count
+    request:
+      url: "{{baseUrl}}/account/credits"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: "0"
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/account/credits"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/account/credits"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""

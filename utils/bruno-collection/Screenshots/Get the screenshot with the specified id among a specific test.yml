@@ -1,0 +1,152 @@
+info:
+  name: Get the screenshot with the specified id among a specific test
+  type: http
+  seq: 1
+  tags:
+    - Screenshots
+
+http:
+  method: GET
+  url: "{{baseUrl}}/testRuns/:testRunId/screenshots/:screenshotId"
+  headers:
+    - name: x-api-key
+      value: "{{apiKey}}"
+  params:
+    - name: testRunId
+      value: "{{testRunId}}"
+      type: path
+      description: ID of the test
+    - name: screenshotId
+      value: ""
+      type: path
+      description: ID of the screenshot
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: Screenshot is returned
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId/screenshots/:screenshotId"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test
+        - name: screenshotId
+          value: ""
+          type: path
+          description: ID of the screenshot
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "data": ""
+          }
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId/screenshots/:screenshotId"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test
+        - name: screenshotId
+          value: ""
+          type: path
+          description: ID of the screenshot
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: Screenshot not found
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId/screenshots/:screenshotId"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test
+        - name: screenshotId
+          value: ""
+          type: path
+          description: ID of the screenshot
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""
+  - name: 410 Response
+    description: Test run expired
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId/screenshots/:screenshotId"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test
+        - name: screenshotId
+          value: ""
+          type: path
+          description: ID of the screenshot
+    response:
+      status: 410
+      statusText: Gone
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/testRuns/:testRunId/screenshots/:screenshotId"
+      method: GET
+      headers:
+        - name: x-api-key
+          value: "{{apiKey}}"
+      params:
+        - name: testRunId
+          value: ""
+          type: path
+          description: ID of the test
+        - name: screenshotId
+          value: ""
+          type: path
+          description: ID of the screenshot
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""
