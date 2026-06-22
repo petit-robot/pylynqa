@@ -447,9 +447,74 @@ paths:
       summary: Get Credit Ledger for a specified API Key
       tags:
         - Account
+  /changelog/raw:
+    get:
+      operationId: ChangelogController_getRaw
+      parameters: []
+      responses:
+        '200':
+          description: Changelog in markdown format
+      summary: Get raw Changelog - Markdown format
+      tags:
+        - Changelog
+  /changelog/formatted:
+    get:
+      operationId: ChangelogController_getFormatted
+      parameters:
+        - name: releasesCount
+          required: true
+          in: query
+          description: Number of releases to fetch
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Changelog formatted
+      summary: Get formatted Changelog
+      tags:
+        - Changelog
 info:
   title: Lynqa API
-  description: Agentic AI Test Execution.
+  description: >+
+
+    Agentic AI Test Execution.
+
+
+    ---
+
+
+    ## Last 2 releases [(↗ See full changelog
+    here)](https://my.lynqa.smartesting.com/changelog)
+
+
+    All notable changes to this API will be documented here.
+
+
+    ## 2026-06-15
+
+
+    ### Added
+
+
+    - `GET /changelog/raw` - Raw changelog in Markdown format
+
+    - `GET /changelog/formatted` - Formatted changelog
+
+
+    ### Changed
+
+
+    ### Deprecated
+
+
+    ### Removed
+
+
+    ### Fixed
+
+
+    ### Security
+
   version: 1.0.0
   contact: {}
 tags: []
@@ -737,6 +802,11 @@ components:
     TestRunStatus:
       type: object
       properties:
+        createdAt:
+          format: date-time
+          type: string
+          description: Creation date
+          example: '2025-09-18T08:59:00.000Z'
         initialReport:
           description: >-
             Initial environment capture before executing any step (screenshot
@@ -777,6 +847,7 @@ components:
           description: Expiration date
           example: '2025-09-18T09:05:27.000Z'
       required:
+        - createdAt
         - status
     StopTestRuns:
       type: object
@@ -1013,6 +1084,11 @@ components:
     TestRunFullStatus:
       type: object
       properties:
+        createdAt:
+          format: date-time
+          type: string
+          description: Creation date
+          example: '2025-09-18T08:59:00.000Z'
         initialReport:
           description: >-
             Initial environment capture before executing any step (screenshot
@@ -1071,6 +1147,7 @@ components:
           items:
             $ref: '#/components/schemas/TestStep'
       required:
+        - createdAt
         - status
         - stepStatuses
         - type
@@ -1078,6 +1155,11 @@ components:
     GherkinTestRunFullStatus:
       type: object
       properties:
+        createdAt:
+          format: date-time
+          type: string
+          description: Creation date
+          example: '2025-09-18T08:59:00.000Z'
         initialReport:
           description: >-
             Initial environment capture before executing any step (screenshot
@@ -1136,6 +1218,7 @@ components:
           items:
             $ref: '#/components/schemas/GherkinStep'
       required:
+        - createdAt
         - status
         - stepStatuses
         - type
