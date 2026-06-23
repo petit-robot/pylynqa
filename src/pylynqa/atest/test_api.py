@@ -82,6 +82,8 @@ class TestApiScenario:
         "test_get_account_credits",
         "test_get_purchases",
         "test_get_credit_ledger",
+        "test_get_changelog_raw",
+        "test_get_changelog_formatted",
         "test_create_gherkin_test_run",
     )
 
@@ -127,6 +129,20 @@ class TestApiScenario:
         assert len(ledger) > 0
         assert ledger[0]["balanceAfter"] != 0, "Should have at least one credit ledger"
 
+    def test_get_changelog_raw(self, client):
+        # Act
+        changelog = client.get_changelog_raw()
+        # Assert
+        assert isinstance(changelog, str)
+        assert len(changelog) > 0
+
+    def test_get_changelog_formatted(self, client):
+        # Act
+        changelog = client.get_changelog_formatted(releases_count=2)
+        # Assert
+        assert isinstance(changelog, str)
+        assert len(changelog) > 0
+
     def test_create_gherkin_test_run(self, client):
         # Act
         TestApiScenario.test_run_id = client.add_gherkin_test_run(
@@ -145,6 +161,7 @@ class TestApiScenario:
         # Act
         result = client.get_test_run_status(TestApiScenario.test_run_id)
         # Assert
+        assert "createdAt" in result
         assert "status" in result
         assert result["status"] in {"waiting", "running"} | TERMINAL_STATUSES
 
@@ -154,6 +171,7 @@ class TestApiScenario:
         # Act
         result = client.get_test_run_full_status(TestApiScenario.test_run_id)
         # Assert
+        assert "createdAt" in result
         assert "status" in result
         assert result["status"] in TERMINAL_STATUSES
         assert "stepStatuses" in result

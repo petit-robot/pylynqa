@@ -25,6 +25,7 @@ TEST_RUN = {
 }
 
 TEST_RUN_STATUS = {
+    "createdAt": "2025-09-18T08:59:00.000Z",
     "initialReport": {"screenshot": "4b111ba4-c236-4770-67bf-0f17d0230e47"},
     "status": "running",
     "statusMessage": "Insufficient credits",
@@ -34,6 +35,7 @@ TEST_RUN_STATUS = {
 }
 
 TEST_RUN_FULL_STATUS = {
+    "createdAt": "2025-09-18T08:59:00.000Z",
     "initialReport": {"screenshot": "4b111ba4-c236-4770-67bf-0f17d0230e47"},
     "status": "running",
     "statusMessage": "Insufficient credits",
