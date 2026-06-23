@@ -13,6 +13,8 @@ from pylynqa.client import (
     ENDPOINT_ACCOUNT_CREDIT_LEDGER,
     ENDPOINT_ACCOUNT_CREDITS,
     ENDPOINT_ACCOUNT_PURCHASES,
+    ENDPOINT_CHANGELOG_FORMATTED,
+    ENDPOINT_CHANGELOG_RAW,
     ENDPOINT_HEALTH_LIVE,
     ENDPOINT_HEALTH_READY,
     ENDPOINT_TEST_RUNS,
@@ -356,6 +358,7 @@ class TestGetTestRunStatus:
 
         # Assert
         assert result["status"] == "running"
+        assert result["createdAt"] == "2025-09-18T08:59:00.000Z"
 
     @pytest.mark.parametrize(
         ("status_code", "error"),
@@ -389,6 +392,7 @@ class TestGetTestRunFullStatus:
 
         # Assert
         assert result["status"] == "running"
+        assert result["createdAt"] == "2025-09-18T08:59:00.000Z"
         assert result["stepStatuses"][0]["status"] == "success"
 
     @pytest.mark.parametrize(
@@ -662,3 +666,34 @@ class TestAccount:
             status_code,
             error,
         )
+
+
+class TestChangelog:
+    def test_get_changelog_raw(self, client, responses):
+        """Test."""
+        # Arrange
+        changelog = "# Changelog\n\n## 2026-06-15\n"
+        responses.add(responses.GET, url(ENDPOINT_CHANGELOG_RAW), body=changelog)
+
+        # Act
+        result = client.get_changelog_raw()
+
+        # Assert
+        assert result == changelog
+
+    def test_get_changelog_formatted(self, client, responses):
+        """Test."""
+        # Arrange
+        changelog = "Changelog formatted"
+        responses.add(
+            responses.GET,
+            url(ENDPOINT_CHANGELOG_FORMATTED),
+            body=changelog,
+            match=[matchers.query_param_matcher({"releasesCount": "2"})],
+        )
+
+        # Act
+        result = client.get_changelog_formatted(releases_count=2)
+
+        # Assert
+        assert result == changelog

@@ -60,6 +60,8 @@ ENDPOINT_TEST_RUNS_QUERY = "/testRuns/query"
 ENDPOINT_ACCOUNT_CREDITS = "/account/credits"
 ENDPOINT_ACCOUNT_PURCHASES = "/account/purchases"
 ENDPOINT_ACCOUNT_CREDIT_LEDGER = "/account/creditLedger"
+ENDPOINT_CHANGELOG_RAW = "/changelog/raw"
+ENDPOINT_CHANGELOG_FORMATTED = "/changelog/formatted"
 
 _LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 _PACKAGE_CONSUMER_NAME = "petit-robot:pylynqa"
@@ -340,6 +342,7 @@ class LynqaClient:
 
         The returned dict contains:
 
+        - ``createdAt`` *(str, ISO 8601)* - when the test run was created.
         - ``status`` *(str)* - one of ``waiting``, ``running``, ``success``, ``failed``, ``error``, ``stopped``,
           ``not_run``.
         - ``start`` / ``end`` *(str, ISO 8601)* - timing information.
@@ -536,3 +539,27 @@ class LynqaClient:
         :raises LynqaClientError: ``401`` on authentication failure, ``429`` rate limit.
         """
         return self._request("GET", ENDPOINT_ACCOUNT_CREDIT_LEDGER).json()
+
+    # ------------------------------------------------------------------
+    # Changelog
+    # ------------------------------------------------------------------
+
+    def get_changelog_raw(self) -> str:
+        """Get the raw changelog in Markdown format.
+
+        Corresponds to ``GET /changelog/raw``.
+
+        :returns: The changelog as a Markdown string.
+        """
+        return self._request("GET", ENDPOINT_CHANGELOG_RAW).text
+
+    def get_changelog_formatted(self, releases_count: int) -> str:
+        """Get the formatted changelog for the most recent releases.
+
+        Corresponds to ``GET /changelog/formatted``.
+
+        :param releases_count: Number of releases to fetch.
+
+        :returns: The formatted changelog.
+        """
+        return self._request("GET", ENDPOINT_CHANGELOG_FORMATTED, params={"releasesCount": releases_count}).text
