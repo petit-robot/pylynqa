@@ -1,16 +1,21 @@
-VENV        := .venv/bin
-file      := .
+file      := ./src
 
-.PHONY: lint format ty test
+.PHONY: lint format ty test docstrfmt sphinxlint
 
 lint:
-	$(VENV)/ruff check $(file)
+	ruff check --fix $(file)
 
 format:
-	$(VENV)/ruff format $(file)
+	ruff format $(file)
 
 ty:
-	$(VENV)/ty check $(file)
+	ty check $(file)
 
 test:
-	$(VENV)/pytest src/pylynqa/test -v --tb=short $(file)
+	pytest -v --tb=short $(file)
+
+docstrfmt:
+	docstrfmt $(file)
+
+sphinxlint:
+	sphinx-lint --max-line-length 120 $(file)

@@ -12,7 +12,7 @@ https://my.lynqa.smartesting.com/integration.
 
 **Quick start**:
 
-::
+.. code-block:: python
 
     from lynqa import CreateTestStep, LynqaClient
 
@@ -75,8 +75,8 @@ class LynqaClient:
 
     :param api_key: Lynqa API key.
     :param base_url: Base URL of the API. Defaults to the production server ``https://api.lynqa.smartesting.com``.
-        Override for self-hosted or staging environments. Must use ``https`` so the API key is never sent in clear
-        text; plain ``http`` is only accepted for loopback hosts (``localhost``, ``127.0.0.1``, ``::1``).
+        Override for self-hosted or staging environments. Must use ``https`` so the API key is never sent in clear text;
+        plain ``http`` is only accepted for loopback hosts (``localhost``, ``127.0.0.1``, ``::1``).
     :param timeout: Per-request network timeout in seconds (connect + read). Defaults to ``30``. Pass ``None`` to
         disable (not recommended). Can be overridden per call via the ``timeout`` keyword.
 
@@ -84,11 +84,11 @@ class LynqaClient:
     :raises LynqaClientError: On any non-2xx response from the API.
 
     Example:
-    ::
 
-        client = LynqaClient(api_key="lq_live_xxxxxxxxxxxx")
-        print(client.get_test_execution_credits())  # 410
+        .. code-block:: python
 
+            client = LynqaClient(api_key="lq_live_xxxxxxxxxxxx")
+            print(client.get_test_execution_credits())  # 410
     """
 
     def __init__(
@@ -115,6 +115,7 @@ class LynqaClient:
         Only ``https`` is allowed, except for loopback hosts where plain ``http`` is tolerated for local development.
 
         :param base_url: Base URL to validate.
+
         :raises ValueError: If the scheme is not ``https`` (and the host is not loopback).
         """
         parts = urlsplit(base_url)
@@ -135,10 +136,11 @@ class LynqaClient:
     def _encode_segment(value: str | int) -> str:
         """URL-encode a single path segment.
 
-        Prevents caller-supplied IDs (e.g. a test run ID) from altering the request path through ``/``, ``..``, ``?``
-        or ``#`` characters.
+        Prevents caller-supplied IDs (e.g. a test run ID) from altering the request path through ``/``, ``..``, ``?`` or
+        ``#`` characters.
 
         :param value: Raw path segment value.
+
         :returns: Encoded segment safe to embed in a URL path.
         """
         return quote(str(value), safe="")
@@ -220,20 +222,20 @@ class LynqaClient:
         :raises LynqaClientError: On API errors (400, 401, 403, 422, 429).
 
         Example:
-        ::
 
-            run_id = client.add_test_run(
-                url="https://example.com",
-                steps=[
-                    CreateTestStep(
-                        action='Fill in the username field with "admin"',
-                        expected_result="The username field shows 'admin'",
-                    ),
-                    CreateTestStep(action='Click on "Submit"'),
-                ],
-                name="Login - happy path",
-            )
+            .. code-block:: python
 
+                run_id = client.add_test_run(
+                    url="https://example.com",
+                    steps=[
+                        CreateTestStep(
+                            action='Fill in the username field with "admin"',
+                            expected_result="The username field shows 'admin'",
+                        ),
+                        CreateTestStep(action='Click on "Submit"'),
+                    ],
+                    name="Login - happy path",
+                )
         """
         body: dict = {"url": url, "steps": [s.to_dict() for s in steps]}
         if name is not None:
@@ -278,18 +280,18 @@ class LynqaClient:
         :raises LynqaClientError: On API errors (400, 401, 403, 422, 429).
 
         Example:
-        ::
 
-            run_id = client.add_gherkin_test_run(
-                url="https://example.com",
-                scenario=(
-                    "Given the user is on the login page\\n"
-                    "When the user enters valid credentials\\n"
-                    "Then the user is redirected to the dashboard"
-                ),
-                name="Login - Gherkin",
-            )
+            .. code-block:: python
 
+                run_id = client.add_gherkin_test_run(
+                    url="https://example.com",
+                    scenario=(
+                        "Given the user is on the login page\\n"
+                        "When the user enters valid credentials\\n"
+                        "Then the user is redirected to the dashboard"
+                    ),
+                    name="Login - Gherkin",
+                )
         """
         body: dict = {"url": url, "scenario": scenario}
         if name is not None:
@@ -389,11 +391,11 @@ class LynqaClient:
         :raises LynqaClientError: ``400`` if body is malformed, ``401``, ``429``.
 
         Example:
-        ::
 
-            result = client.stop_test_runs([101, 102, 103])
-            print(result["stoppedTestRunIds"])  # [101, 103]
+            .. code-block:: python
 
+                result = client.stop_test_runs([101, 102, 103])
+                print(result["stoppedTestRunIds"])  # [101, 103]
         """
         return self._request("POST", ENDPOINT_TEST_RUNS_STOP, json={"testRunIds": test_run_ids}).json()
 
@@ -417,18 +419,18 @@ class LynqaClient:
         :raises LynqaClientError: ``400`` if the query is malformed, ``401`` authentication failed, ``429`` rate limit.
 
         Example:
-        ::
 
-            page = client.query_test_runs(
-                filters=TestRunsFilter(
-                    statuses=["failed"],
-                    relative_period=TimePeriod(count=24, unit="h"),
-                ),
-                limit=50,
-            )
-            for run in page["testRuns"]:
-                print(run["id"], run["status"])
+            .. code-block:: python
 
+                page = client.query_test_runs(
+                    filters=TestRunsFilter(
+                        statuses=["failed"],
+                        relative_period=TimePeriod(count=24, unit="h"),
+                    ),
+                    limit=50,
+                )
+                for run in page["testRuns"]:
+                    print(run["id"], run["status"])
         """
         params: dict = {}
         if cursor is not None:
@@ -489,14 +491,14 @@ class LynqaClient:
             ``429`` rate limit.
 
         Example:
-        ::
 
-            import base64
+            .. code-block:: python
 
-            data = client.get_screenshot(run_id, "4b111ba4-c236-4770-67bf-0f17d0230e47")
-            with open("screenshot.png", "wb") as f:
-                f.write(base64.b64decode(data))
+                import base64
 
+                data = client.get_screenshot(run_id, "4b111ba4-c236-4770-67bf-0f17d0230e47")
+                with open("screenshot.png", "wb") as f:
+                    f.write(base64.b64decode(data))
         """
         return self._request(
             "GET",

@@ -122,8 +122,8 @@ class TestRunContext:
     :param client_language: BCP-47 language tag or plain language name representing the browser locale, e.g.
         ``'en-US'``.
     :param client_datetime: Human-readable local date/time string passed to the agent, e.g. ``'Thu Feb 26 2026 09:26:12
-        GMT+0100'``.
-        :param secrets: List of :class:`TestData` entries that will be injected into the test steps at execution time.
+        GMT+0100'``. :param secrets: List of :class:`TestData` entries that will be injected into the test steps at
+        execution time.
     """
 
     client_language: str | None = None
@@ -167,8 +167,8 @@ class TestRunsFilter:
 
     All fields are optional; omitted fields are not sent in the request body.
 
-    :param statuses: Keep only runs with these statuses. Allowed values: ``'waiting'``, ``'running'``,
-        ``'success'``, ``'failed'``, ``'error'``, ``'stopped'``, ``'not_run'``.
+    :param statuses: Keep only runs with these statuses. Allowed values: ``'waiting'``, ``'running'``, ``'success'``,
+        ``'failed'``, ``'error'``, ``'stopped'``, ``'not_run'``.
     :param relative_period: Relative time window, e.g. ``TimePeriod(count=3, unit='h')`` for the last 3 hours.
     :param start_date: Start of an explicit date range (ISO 8601).
     :param end_date: End of an explicit date range (ISO 8601).
