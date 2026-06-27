@@ -22,7 +22,9 @@ dev = [
     "pytest-responses>=0.5",
     "ruff>=0.15",
     "ty>=0.0",
-    "coverage>=7.10"
+    "coverage>=7.10",
+    "docstrfmt>=1.11",
+    "sphinx-lint>=0.9"
 ]
 
 [tool.setuptools.packages.find]
@@ -46,6 +48,8 @@ ignore = [
     # Resolve conflicting pydocstyle (D) rules: keep D211/D212, drop their pairs.
     "D203",  # one-blank-line-before-class (conflicts with D211)
     "D213",  # multi-line-summary-second-line (conflicts with D212)
+    # docstrfmt strips the trailing blank line; let it own docstring layout.
+    "D413",  # blank-line-after-last-section (conflicts with docstrfmt)
 ]
 select = [
     # pycodestyle (errors + warnings)
@@ -113,6 +117,10 @@ select = [
 # `assert` is the idiomatic way to express test expectations.
 "**/test/**" = ["S101"]
 "**/atest/**" = ["S101"]
+
+[tool.docstrfmt]
+line_length = 120
+docstring_trailing_line = false
 
 [tool.ty.environment]
 python-version = "3.9"

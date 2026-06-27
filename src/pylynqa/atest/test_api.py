@@ -2,7 +2,9 @@
 
 Requires the environment variable ``LYNQA_API_KEY`` to be set.
 
-Run with::
+Run with:
+
+::
 
     LYNQA_API_KEY=lq_live_xxx pytest projects/pylynqa/src/pylynqa/atest -v
 """
@@ -87,7 +89,7 @@ class TestApiScenario:
         "test_create_gherkin_test_run",
     )
 
-    @pytest.fixture(autouse=True)  # ruff: ignore[pytest-fixture-autouse]
+    @pytest.fixture(autouse=True)
     def setup(self, request):
         """Set up all tests."""
         # Disable HTTP mocking for all requests to the real API base URL.
