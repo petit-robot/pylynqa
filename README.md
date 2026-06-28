@@ -7,7 +7,7 @@
 
 **pylynqa** is a Python client for the [Lynqa](https://lynqa.smartesting.com) REST API.
 
-![Python/Lynqa connector](docs/python-lynqa.png)
+![Python/Lynqa connector](https://raw.githubusercontent.com/petit-robot/pylynqa/main/docs/python-lynqa.png)
 
 Lynqa is a test execution AI Agent: you describe a test (plain steps or a Gherkin scenario) and Lynqa runs it
 against your web application. This library provides a wrapper around the REST API, covering test
