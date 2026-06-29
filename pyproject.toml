@@ -27,6 +27,11 @@ dev = [
     "sphinx-lint>=0.9"
 ]
 
+doc = [
+    "sphinx>=9.1",
+    "sphinx-rtd-theme>=3.1"
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
