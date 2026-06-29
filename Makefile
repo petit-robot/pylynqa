@@ -19,3 +19,7 @@ docstrfmt:
 
 sphinxlint:
 	sphinx-lint --max-line-length 120 $(file)
+
+doc:
+	sphinx-build -b html docs/sphinx/source docs/sphinx/build --fail-on-warning
+
