@@ -69,7 +69,7 @@ paths:
           in: path
           description: ID of the test run
           schema:
-            type: number
+            type: string
       responses:
         '200':
           description: >-
@@ -118,7 +118,7 @@ paths:
             application/json:
               schema:
                 type: string
-                example: mf4zz9945nwbofv81shozwb5
+                example: fphulpqp6jqwsgwwsza6q4ar
         '400':
           description: Test is malformed
         '401':
@@ -161,7 +161,7 @@ paths:
             application/json:
               schema:
                 type: string
-                example: mf4zz9945nwbofv81shozwb5
+                example: fphulpqp6jqwsgwwsza6q4ar
         '400':
           description: Test is malformed
         '401':
@@ -186,7 +186,7 @@ paths:
           in: path
           description: ID of the test
           schema:
-            type: number
+            type: string
       responses:
         '200':
           description: Test with steps
@@ -217,7 +217,7 @@ paths:
           in: path
           description: ID of the test run to delete
           schema:
-            type: number
+            type: string
       responses:
         '204':
           description: Test run deleted
@@ -241,7 +241,7 @@ paths:
           in: path
           description: ID of the test
           schema:
-            type: number
+            type: string
       responses:
         '200':
           description: Status of the test
@@ -271,7 +271,7 @@ paths:
           in: path
           description: ID of the test
           schema:
-            type: number
+            type: string
       responses:
         '200':
           description: Full status of the test
@@ -368,7 +368,7 @@ paths:
           in: path
           description: ID of the test
           schema:
-            type: number
+            type: string
         - name: screenshotId
           required: true
           in: path
@@ -490,30 +490,49 @@ info:
     All notable changes to this API will be documented here.
 
 
-    ## 2026-06-15
-
-
-    ### Added
-
-
-    - `GET /changelog/raw` - Raw changelog in Markdown format
-
-    - `GET /changelog/formatted` - Formatted changelog
+    ## 2026-07-06
 
 
     ### Changed
 
 
-    ### Deprecated
+    - `POST /testRuns`: now has a `webhooks` body property to declare webhooks
+    to be notified of test run ended
+
+    - `POST /testRuns/gherkin`: now has a `webhooks` body property to declare
+    webhooks to be notified of test run ended
+
+    - `GET /testRuns/:id`: now has a `webhooks` body property containing the
+    status of webhooks (url, code, error)
 
 
-    ### Removed
+    ## 2026-06-29
 
 
-    ### Fixed
+    ### Changed
 
 
-    ### Security
+    - `POST /testRuns`: returns a string
+
+    - `POST /testRuns/gherkin`: returns a string
+
+    - `GET /testRuns/:id`: `id` param is now a string
+
+    - `DELETE /testRuns/:id`: `id` param is now a string
+
+    - `GET /testRuns/:id/status`: `id` param is now a string
+
+    - `GET /testRuns/:id/fullStatus`: `id` param is now a string
+
+    - `POST /testRuns/stop`: `testRunIds` body property is now a string array
+
+    - `POST /testRuns/stop`: `stoppedTestRunIds` body response property is now a
+    string array
+
+    - `POST /testRuns/query`: `testRunIds` body property is now a string array
+
+    - `GET /testRuns/:testRunId/screenshots/:screenshotId`: `testRunId` param is
+    now a string
 
   version: 1.0.0
   contact: {}
@@ -741,6 +760,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CreateAttachment'
+        webhooks:
+          description: Webhooks to call after a test ended
+          example:
+            - https://my-webhook.com/test-result
+          type: array
+          items:
+            type: string
         steps:
           description: Test steps
           type: array
@@ -774,6 +800,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CreateAttachment'
+        webhooks:
+          description: Webhooks to call after a test ended
+          example:
+            - https://my-webhook.com/test-result
+          type: array
+          items:
+            type: string
         scenario:
           type: string
           description: Gherkin scenario
@@ -925,12 +958,12 @@ components:
           description: Filter test runs by API key IDs
           type: array
           items:
-            type: array
+            type: string
         testRunIds:
           description: Filter test runs by IDs
           type: array
           items:
-            type: array
+            type: string
     Screenshot:
       type: object
       properties:
@@ -952,6 +985,25 @@ components:
       required:
         - name
         - id
+    Webhook:
+      type: object
+      properties:
+        url:
+          type: string
+          description: URL of the webhook
+          example: https://myapi.com/test-result
+        code:
+          type: number
+          description: Status code of the request
+          example: 200
+        error:
+          type: string
+          description: Error raised by the request, if any.
+          example: failed to fetch
+      required:
+        - url
+        - code
+        - error
     GherkinStep:
       type: object
       properties:
@@ -999,6 +1051,11 @@ components:
           type: boolean
           description: Whether an architecture fallback was used
           example: false
+        webhooks:
+          description: Webhooks to deliver test results to
+          type: array
+          items:
+            $ref: '#/components/schemas/Webhook'
         type:
           type: string
           enum:
@@ -1068,6 +1125,11 @@ components:
           type: boolean
           description: Whether an architecture fallback was used
           example: false
+        webhooks:
+          description: Webhooks to deliver test results to
+          type: array
+          items:
+            $ref: '#/components/schemas/Webhook'
         type:
           type: string
           enum:

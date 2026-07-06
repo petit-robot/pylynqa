@@ -152,6 +152,7 @@ class TestAddTestRun:
             ),
             guidance=[TextualData(text="The user is between 18 and 49")],
             attachments=[CreateAttachment(name="file.txt", data="data:text/plain;base64,SmFuZQo=")],
+            webhooks=["https://my-webhook.com/test-result"],
         )
 
         # Assert
@@ -172,6 +173,7 @@ class TestAddTestRun:
             },
             "guidance": [{"text": "The user is between 18 and 49"}],
             "attachments": [{"name": "file.txt", "data": "data:text/plain;base64,SmFuZQo="}],
+            "webhooks": ["https://my-webhook.com/test-result"],
         }
 
     @pytest.mark.parametrize(
@@ -244,6 +246,7 @@ class TestAddGherkinTestRun:
             ),
             guidance=[TextualData(text="The user is between 18 and 49")],
             attachments=[CreateAttachment(name="file.txt", data="data:text/plain;base64,SmFuZQo=")],
+            webhooks=["https://my-webhook.com/test-result"],
         )
 
         # Assert
@@ -258,6 +261,7 @@ class TestAddGherkinTestRun:
             },
             "guidance": [{"text": "The user is between 18 and 49"}],
             "attachments": [{"name": "file.txt", "data": "data:text/plain;base64,SmFuZQo="}],
+            "webhooks": ["https://my-webhook.com/test-result"],
         }
 
     @pytest.mark.parametrize(
@@ -293,6 +297,7 @@ class TestGetTestRun:
 
         # Assert
         assert result == TEST_RUN
+        assert result["webhooks"] == [{"url": "https://myapi.com/test-result", "code": 200, "error": "failed to fetch"}]
 
     @pytest.mark.parametrize(
         ("status_code", "error"),
@@ -442,11 +447,11 @@ class TestStopTestRuns:
             url(ENDPOINT_TEST_RUNS_STOP),
             json={"stoppedTestRunIds": []},
             status=202,
-            match=[matchers.json_params_matcher({"testRunIds": [10, 20]})],
+            match=[matchers.json_params_matcher({"testRunIds": [TEST_RUN_ID, TEST_RUN_ID_2]})],
         )
 
         # Act
-        client.stop_test_runs([10, 20])
+        client.stop_test_runs([TEST_RUN_ID, TEST_RUN_ID_2])
 
     @pytest.mark.parametrize(
         ("status_code", "error"),

@@ -13,6 +13,7 @@ TEST_RUN = {
     },
     "guidance": [{"text": "The user is between 18 and 49"}],
     "attachments": [{"name": "invoice_260313.pdf", "id": "string"}],
+    "webhooks": [{"url": "https://myapi.com/test-result", "code": 200, "error": "failed to fetch"}],
     "type": "manual",
     "steps": [
         {
