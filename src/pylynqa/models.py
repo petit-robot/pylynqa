@@ -180,8 +180,8 @@ class TestRunsFilter:
     relative_period: TimePeriod | None = None
     start_date: str | None = None
     end_date: str | None = None
-    api_key_ids: list | None = None
-    test_run_ids: list | None = None
+    api_key_ids: list[str] | None = None
+    test_run_ids: list[str] | None = None
 
     def to_dict(self) -> dict:
         """Transform to a JSON-compatible dict."""

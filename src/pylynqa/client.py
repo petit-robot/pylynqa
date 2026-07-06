@@ -205,6 +205,7 @@ class LynqaClient:
         context: TestRunContext | None = None,
         guidance: list[TextualData] | None = None,
         attachments: list[CreateAttachment] | None = None,
+        webhooks: list[str] | None = None,
     ) -> str:
         """Execute a manual test run.
 
@@ -216,6 +217,7 @@ class LynqaClient:
         :param context: Optional locale and secrets context.
         :param guidance: Optional global guidance hints for the agent.
         :param attachments: Optional files attached to the test run (base64-encoded).
+        :param webhooks: Optional list of webhook URLs to notify once the test run has ended.
 
         :returns: The ID assigned to the new test run.
 
@@ -235,6 +237,7 @@ class LynqaClient:
                         CreateTestStep(action='Click on "Submit"'),
                     ],
                     name="Login - happy path",
+                    webhooks=["https://my-webhook.com/test-result"],
                 )
         """
         body: dict = {"url": url, "steps": [s.to_dict() for s in steps]}
@@ -246,6 +249,8 @@ class LynqaClient:
             body["guidance"] = [g.to_dict() for g in guidance]
         if attachments:
             body["attachments"] = [a.to_dict() for a in attachments]
+        if webhooks:
+            body["webhooks"] = webhooks
 
         return self._request(
             "POST",
@@ -263,6 +268,7 @@ class LynqaClient:
         context: TestRunContext | None = None,
         guidance: list[TextualData] | None = None,
         attachments: list[CreateAttachment] | None = None,
+        webhooks: list[str] | None = None,
     ) -> str:
         r"""Execute a Gherkin (BDD) test run.
 
@@ -274,6 +280,7 @@ class LynqaClient:
         :param context: Optional locale and secrets context.
         :param guidance: Optional global guidance hints for the agent.
         :param attachments: Optional files attached to the test run (base64-encoded).
+        :param webhooks: Optional list of webhook URLs to notify once the test run has ended.
 
         :returns: The ID assigned to the new test run.
 
@@ -291,6 +298,7 @@ class LynqaClient:
                         "Then the user is redirected to the dashboard"
                     ),
                     name="Login - Gherkin",
+                    webhooks=["https://my-webhook.com/test-result"],
                 )
         """
         body: dict = {"url": url, "scenario": scenario}
@@ -302,6 +310,8 @@ class LynqaClient:
             body["guidance"] = [g.to_dict() for g in guidance]
         if attachments:
             body["attachments"] = [a.to_dict() for a in attachments]
+        if webhooks:
+            body["webhooks"] = webhooks
 
         return self._request(
             "POST",
@@ -317,9 +327,12 @@ class LynqaClient:
 
         The response is either a *manual* test (``type`` = ``'manual'``) or a *Gherkin* test (``type`` = ``'gherkin'``).
 
+        When webhooks were declared at creation time, the response includes a ``webhooks`` list where each entry reports
+        the delivery ``url``, HTTP status ``code``, and an ``error`` string (if the delivery failed).
+
         :param test_run_id: ID of the test run to retrieve.
 
-        :returns: Test run dict including ``url``, ``type``, and ``steps``.
+        :returns: Test run dict including ``url``, ``type``, ``steps``, and, when applicable, ``webhooks``.
 
         :raises LynqaClientError: ``401`` authentication failed, ``404`` if not found, ``410`` if expired, ``429`` rate
             limit.
@@ -394,8 +407,8 @@ class LynqaClient:
 
             .. code-block:: python
 
-                result = client.stop_test_runs([101, 102, 103])
-                print(result["stoppedTestRunIds"])  # [101, 103]
+                result = client.stop_test_runs(["mf4zz9945nwbofv81shozwb5", "zcuk4l13zax1piz2h73imct6"])
+                print(result["stoppedTestRunIds"])  # ["mf4zz9945nwbofv81shozwb5"]
         """
         return self._request("POST", ENDPOINT_TEST_RUNS_STOP, json={"testRunIds": test_run_ids}).json()
 

@@ -1,6 +1,8 @@
 file      := ./src
 
-.PHONY: lint format ty test docstrfmt sphinxlint
+.PHONY: lint format ty test docstrfmt sphinxlint doc
+
+all: format docstrfmt lint ty sphinxlint test
 
 lint:
 	ruff check --fix $(file)
@@ -22,4 +24,3 @@ sphinxlint:
 
 doc:
 	sphinx-build -b html docs/sphinx/source docs/sphinx/build --fail-on-warning
-
