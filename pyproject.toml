@@ -38,7 +38,6 @@ where = ["src"]
 [tool.setuptools_scm]
 
 [tool.ruff]
-# Exclude directories.
 exclude = [
     "venv"
 ]
@@ -119,7 +118,6 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# `assert` is the idiomatic way to express test expectations.
 "**/test/**" = ["S101"]
 "**/atest/**" = ["S101"]
 
