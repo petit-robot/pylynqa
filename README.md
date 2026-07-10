@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/petit-robot/pylynqa/actions/workflows/ci.yml/badge.svg)](https://github.com/petit-robot/pylynqa/actions/workflows/ci.yml)
 [![Acceptance test](https://github.com/petit-robot/pylynqa/actions/workflows/acceptance.yml/badge.svg)](https://github.com/petit-robot/pylynqa/actions/workflows/acceptance.yml)
+[![Documentation](https://img.shields.io/badge/docs-Full%20documentation-blue.svg)](https://petit-robot.github.io/pylynqa/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)
 
