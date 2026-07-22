@@ -1,0 +1,302 @@
+info:
+  name: Execute a batch of tests
+  type: http
+  seq: 2
+  tags:
+    - TestRuns
+
+http:
+  method: POST
+  url: "{{baseUrl}}/testRuns/batch"
+  headers:
+    - name: x-api-consumer
+      value: petit-robot:bruno
+    - name: x-api-key
+      value: "{{apiKey}}"
+  body:
+    type: json
+    data: |-
+      {
+        "sequential": false,
+        "tests": [
+          {
+            "url": "https://example.com/",
+            "name": "Login flow (manual)",
+            "context": {
+              "clientLanguage": "en-US, english, en",
+              "clientDatetime": "Thu Feb 26 2026 09:26:12 GMT+0100 (Central Europe time)"
+            },
+            "guidance": [
+              {
+                "text": "The user is between 18 and 49"
+              }
+            ],
+            "webhooks": [
+              "https://my-webhook.com/test-result"
+            ],
+            "steps": [
+              {
+                "action": "Click on the \"Login\" button",
+                "expectedResult": "Verify that the user is logged-in"
+              }
+            ]
+          },
+          {
+            "url": "https://example.com/",
+            "name": "Search a book (gherkin)",
+            "scenario": "Given the user is connected\nWhen the user search for a book\nThen a list of books is displayed"
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+        if (body && body.testRunIds) {
+          bru.setVar("testRunIds", body.testRunIds);
+          console.log("testRunIds captured:", body.testRunIds);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 201 Response
+    description: The test run ids
+    request:
+      url: "{{baseUrl}}/testRuns/batch"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "sequential": false,
+            "tests": [
+              {
+                "url": "https://example.com/",
+                "name": "My test name",
+                "context": "",
+                "guidance": [
+                  {
+                    "text": "The user is between 18 and 49"
+                  }
+                ],
+                "attachments": [
+                  {
+                    "name": "invoice_260313.pdf",
+                    "data": "data:text/plain;base64,SGVsbG8gd29ybGQh"
+                  }
+                ],
+                "webhooks": [
+                  "https://my-webhook.com/test-result"
+                ],
+                "steps": [
+                  {
+                    "action": "Click on the \"Login\" button",
+                    "expectedResult": "Verify that the user is logged-in"
+                  }
+                ]
+              },
+              {
+                "url": "https://example.com/",
+                "name": "My gherkin test name",
+                "scenario": "Given the user is connected\nWhen the user search for a book\nThen a list of books is displayed"
+              }
+            ]
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "testRunIds": [
+              "m626fwxopxr489raizu6hjgy",
+              "zcuk4l13zax1piz2h73imct6"
+            ]
+          }
+  - name: 400 Response
+    description: Tests are malformed
+    request:
+      url: "{{baseUrl}}/testRuns/batch"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "sequential": false,
+            "tests": [
+              {
+                "url": "https://example.com/",
+                "name": "My test name",
+                "steps": [
+                  {
+                    "action": "Click on the \"Login\" button",
+                    "expectedResult": "Verify that the user is logged-in"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Authentication failed
+    request:
+      url: "{{baseUrl}}/testRuns/batch"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "sequential": false,
+            "tests": [
+              {
+                "url": "https://example.com/",
+                "name": "My test name",
+                "steps": [
+                  {
+                    "action": "Click on the \"Login\" button",
+                    "expectedResult": "Verify that the user is logged-in"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 403 Response
+    description: Not enough credits
+    request:
+      url: "{{baseUrl}}/testRuns/batch"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "sequential": false,
+            "tests": [
+              {
+                "url": "https://example.com/",
+                "name": "My test name",
+                "steps": [
+                  {
+                    "action": "Click on the \"Login\" button",
+                    "expectedResult": "Verify that the user is logged-in"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 403
+      statusText: Forbidden
+      body:
+        type: text
+        data: ""
+  - name: 422 Response
+    description: URLs are not safe
+    request:
+      url: "{{baseUrl}}/testRuns/batch"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "sequential": false,
+            "tests": [
+              {
+                "url": "https://example.com/",
+                "name": "My test name",
+                "steps": [
+                  {
+                    "action": "Click on the \"Login\" button",
+                    "expectedResult": "Verify that the user is logged-in"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 422
+      statusText: Unprocessable Entity
+      body:
+        type: text
+        data: ""
+  - name: 429 Response
+    description: Too many requests
+    request:
+      url: "{{baseUrl}}/testRuns/batch"
+      method: POST
+      headers:
+        - name: x-api-consumer
+          value: ""
+        - name: x-api-key
+          value: "{{apiKey}}"
+      body:
+        type: json
+        data: |-
+          {
+            "sequential": false,
+            "tests": [
+              {
+                "url": "https://example.com/",
+                "name": "My test name",
+                "steps": [
+                  {
+                    "action": "Click on the \"Login\" button",
+                    "expectedResult": "Verify that the user is logged-in"
+                  }
+                ]
+              }
+            ]
+          }
+    response:
+      status: 429
+      statusText: Too Many Requests
+      body:
+        type: text
+        data: ""
