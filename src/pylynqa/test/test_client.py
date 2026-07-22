@@ -7,7 +7,17 @@ from pathlib import Path
 import pytest
 from responses import matchers
 
-from pylynqa import CreateAttachment, CreateTestStep, LynqaClient, TestData, TestRunContext, TestRunsFilter, TextualData
+from pylynqa import (
+    CreateAttachment,
+    CreateGherkinTest,
+    CreateTest,
+    CreateTestStep,
+    LynqaClient,
+    TestData,
+    TestRunContext,
+    TestRunsFilter,
+    TextualData,
+)
 from pylynqa.client import (
     _PACKAGE_CONSUMER_NAME,
     ENDPOINT_ACCOUNT_CREDIT_LEDGER,
@@ -18,6 +28,7 @@ from pylynqa.client import (
     ENDPOINT_HEALTH_LIVE,
     ENDPOINT_HEALTH_READY,
     ENDPOINT_TEST_RUNS,
+    ENDPOINT_TEST_RUNS_BATCH,
     ENDPOINT_TEST_RUNS_GHERKIN,
     ENDPOINT_TEST_RUNS_QUERY,
     ENDPOINT_TEST_RUNS_STOP,
@@ -30,6 +41,7 @@ from pylynqa.test.data_set import (
     TEST_RUN_FULL_STATUS,
     TEST_RUN_ID,
     TEST_RUN_ID_2,
+    TEST_RUN_IDS,
     TEST_RUN_STATUS,
     TEST_RUNS,
 )
@@ -286,6 +298,89 @@ class TestAddGherkinTestRun:
         )
 
 
+class TestAddTestBatch:
+    def test_sends_required_fields(self, client, responses):
+        """Test."""
+        # Arrange / Assert
+        responses.add(
+            responses.POST,
+            url(ENDPOINT_TEST_RUNS_BATCH),
+            json={"testRunIds": TEST_RUN_IDS},
+            status=201,
+            match=[
+                matchers.json_params_matcher(
+                    {
+                        "sequential": False,
+                        "tests": [
+                            {"url": "https://example.com", "steps": [{"action": "Click login"}]},
+                            {"url": "https://example.com", "scenario": "Given I am logged in"},
+                        ],
+                    }
+                )
+            ],
+        )
+
+        # Act
+        run_ids = client.add_test_batch(
+            [
+                CreateTest(url="https://example.com", steps=[CreateTestStep(action="Click login")]),
+                CreateGherkinTest(url="https://example.com", scenario="Given I am logged in"),
+            ]
+        )
+
+        # Assert
+        assert run_ids == TEST_RUN_IDS
+        assert headers(responses, 0).get("x-api-consumer") == _PACKAGE_CONSUMER_NAME
+
+    def test_sends_sequential_flag(self, client, responses):
+        """Test."""
+        # Arrange / Assert
+        responses.add(
+            responses.POST,
+            url(ENDPOINT_TEST_RUNS_BATCH),
+            json={"testRunIds": [TEST_RUN_ID]},
+            status=201,
+            match=[
+                matchers.json_params_matcher(
+                    {
+                        "sequential": True,
+                        "tests": [{"url": "https://example.com", "steps": [{"action": "Click login"}]}],
+                    }
+                )
+            ],
+        )
+
+        # Act
+        run_ids = client.add_test_batch(
+            [CreateTest(url="https://example.com", steps=[CreateTestStep(action="Click login")])],
+            sequential=True,
+        )
+
+        # Assert
+        assert run_ids == [TEST_RUN_ID]
+
+    @pytest.mark.parametrize(
+        ("status_code", "error"),
+        [
+            (400, "Tests are malformed"),
+            (401, "Authentication failed"),
+            (403, "Not enough credits"),
+            (422, "URLs are not safe"),
+            (429, "Too many requests"),
+        ],
+    )
+    def test_raises_on_error(self, client, responses, status_code, error):
+        """Test."""
+        assert_raises_on_error(
+            responses,
+            "POST",
+            url(ENDPOINT_TEST_RUNS_BATCH),
+            lambda: client.add_test_batch([CreateTest(url="https://example.com", steps=[])]),
+            status_code,
+            error,
+        )
+
+
 class TestGetTestRun:
     def test_returns_test_run(self, client, responses):
         """Test."""
@@ -297,7 +392,6 @@ class TestGetTestRun:
 
         # Assert
         assert result == TEST_RUN
-        assert result["webhooks"] == [{"url": "https://myapi.com/test-result", "code": 200, "error": "failed to fetch"}]
 
     @pytest.mark.parametrize(
         ("status_code", "error"),
@@ -362,8 +456,7 @@ class TestGetTestRunStatus:
         result = client.get_test_run_status(TEST_RUN_ID)
 
         # Assert
-        assert result["status"] == "running"
-        assert result["createdAt"] == "2025-09-18T08:59:00.000Z"
+        assert result == TEST_RUN_STATUS
 
     @pytest.mark.parametrize(
         ("status_code", "error"),
@@ -396,9 +489,7 @@ class TestGetTestRunFullStatus:
         result = client.get_test_run_full_status(TEST_RUN_ID)
 
         # Assert
-        assert result["status"] == "running"
-        assert result["createdAt"] == "2025-09-18T08:59:00.000Z"
-        assert result["stepStatuses"][0]["status"] == "success"
+        assert result == TEST_RUN_FULL_STATUS
 
     @pytest.mark.parametrize(
         ("status_code", "error"),
@@ -517,8 +608,7 @@ class TestGetTestRunStepStatus:
         result = client.get_test_run_step_status(TEST_RUN_ID, 0)
 
         # Assert
-        assert result["status"] == "failed"
-        assert result["commands"][0]["name"] == "fill"
+        assert result == STEP_REPORT
 
     @pytest.mark.parametrize(
         ("status_code", "error"),
