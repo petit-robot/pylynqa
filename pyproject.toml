@@ -49,11 +49,9 @@ indent-width = 4
 [tool.ruff.lint]
 preview = true
 ignore = [
-    # Resolve conflicting pydocstyle (D) rules: keep D211/D212, drop their pairs.
-    "D203",  # one-blank-line-before-class (conflicts with D211)
-    "D213",  # multi-line-summary-second-line (conflicts with D212)
-    # docstrfmt strips the trailing blank line; let it own docstring layout.
-    "D413",  # blank-line-after-last-section (conflicts with docstrfmt)
+    "incorrect-blank-line-before-class",  # Resolve conflicting pydocstyle (D) rules.
+    "multi-line-summary-second-line",   # Resolve conflicting pydocstyle (D) rules.
+    "missing-blank-line-after-last-section",  # Resolve conflicts with docstrfmt.
 ]
 select = [
     # pycodestyle (errors + warnings)
@@ -118,8 +116,8 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**/test/**" = ["S101"]
-"**/atest/**" = ["S101"]
+"**/test/**" = ["assert"]
+"**/atest/**" = ["assert"]
 
 [tool.docstrfmt]
 line_length = 120

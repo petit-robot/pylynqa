@@ -5,7 +5,7 @@ file      := ./src
 all: format docstrfmt lint ty sphinxlint test
 
 lint:
-	ruff check --fix $(file)
+	ruff check --fix . $(file)
 
 format:
 	ruff format $(file)

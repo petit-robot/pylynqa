@@ -199,7 +199,7 @@ class LynqaClient:
     # Test Runs
     # ------------------------------------------------------------------
 
-    def add_test_run(  # noqa: PLR0913
+    def add_test_run(  # ruff:ignore[too-many-arguments]
         self,
         url: str,
         steps: list[CreateTestStep],
@@ -259,7 +259,7 @@ class LynqaClient:
             headers={"x-api-consumer": _PACKAGE_CONSUMER_NAME},
         ).json()
 
-    def add_gherkin_test_run(  # noqa: PLR0913
+    def add_gherkin_test_run(  # ruff:ignore[too-many-arguments]
         self,
         url: str,
         scenario: str,
@@ -422,9 +422,8 @@ class LynqaClient:
         Corresponds to ``GET /testRuns/{testRunId}/fullStatus``.
 
         Extends :meth:`get_test_run_status` with a ``stepStatuses`` list where each entry is a
-        :class:`~pylynqa.models.StepReport`-shaped dict containing the commands executed, timestamps, assertions
-        report, verdict cause, or error. Pass an entry to :meth:`pylynqa.models.StepReport.from_dict` to obtain a typed
-        object.
+        :class:`~pylynqa.models.StepReport`-shaped dict containing the commands executed, timestamps, assertions report,
+        verdict cause, or error. Pass an entry to :meth:`pylynqa.models.StepReport.from_dict` to obtain a typed object.
 
         :param test_run_id: ID of the test run.
 
