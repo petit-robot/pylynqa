@@ -192,7 +192,7 @@ class TestStepReport:
                     "screenshot": "1ff7d9a2-9608-4bca-b94a-ee8fef6d6335",
                 },
                 "testVerdictCause": "Expected URL to contain /dashboard",
-                "error": "internal"
+                "error": "internal",
             }
         )
 
