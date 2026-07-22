@@ -106,7 +106,7 @@ paths:
             type: string
       requestBody:
         required: true
-        description: Test to execute the test run
+        description: Test to execute
         content:
           application/json:
             schema:
@@ -132,6 +132,48 @@ paths:
       security:
         - apiKey: []
       summary: Execute a manual test
+      tags:
+        - TestRuns
+  /testRuns/batch:
+    post:
+      operationId: TestRunsController_addTestBatch
+      parameters:
+        - name: x-api-consumer
+          required: true
+          in: header
+          description: >-
+            Identifies the source application of the request. Supports
+            hierarchical values separated by ":" (e.g.
+            "jira:my-instance.atlassian.net").
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Batch of tests to execute
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTestBatch'
+      responses:
+        '201':
+          description: The test run ids
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestRunIds'
+        '400':
+          description: Tests are malformed
+        '401':
+          description: Authentication failed
+        '403':
+          description: Not enough credits
+        '422':
+          description: URLs are not safe
+        '429':
+          description: Too many requests
+      security:
+        - apiKey: []
+      summary: Execute a batch of manual and/or gherkin tests
       tags:
         - TestRuns
   /testRuns/gherkin:
@@ -490,6 +532,15 @@ info:
     All notable changes to this API will be documented here.
 
 
+    ## 2026-07-15
+
+
+    ### Added
+
+
+    - `POST /testRuns/batch`: create multiple test runs in a single request
+
+
     ## 2026-07-06
 
 
@@ -505,35 +556,6 @@ info:
     - `GET /testRuns/:id`: now has a `webhooks` body property containing the
     status of webhooks (url, code, error)
 
-
-    ## 2026-06-29
-
-
-    ### Changed
-
-
-    - `POST /testRuns`: returns a string
-
-    - `POST /testRuns/gherkin`: returns a string
-
-    - `GET /testRuns/:id`: `id` param is now a string
-
-    - `DELETE /testRuns/:id`: `id` param is now a string
-
-    - `GET /testRuns/:id/status`: `id` param is now a string
-
-    - `GET /testRuns/:id/fullStatus`: `id` param is now a string
-
-    - `POST /testRuns/stop`: `testRunIds` body property is now a string array
-
-    - `POST /testRuns/stop`: `stoppedTestRunIds` body response property is now a
-    string array
-
-    - `POST /testRuns/query`: `testRunIds` body property is now a string array
-
-    - `GET /testRuns/:testRunId/screenshots/:screenshotId`: `testRunId` param is
-    now a string
-
   version: 1.0.0
   contact: {}
 tags: []
@@ -547,39 +569,6 @@ components:
       in: header
       description: Lynqa API key created from https://my.lynqa.smartesting.com/integration
   schemas:
-    StepCommand:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Name of the command
-          enum:
-            - click
-            - doubleClick
-            - fill
-            - type
-            - select
-            - hover
-            - pressKey
-            - scroll
-          example: fill
-        value:
-          type: string
-          description: Value parameter passed to the command if exists
-          example: Lorem ipsum
-        htmlElement:
-          type: string
-          description: >-
-            A short plain-text description of the html element targeted by the
-            command if exists
-          example: The search field
-        screenshot:
-          type: string
-          description: UUID of the screenshot captured after the command, if available
-          example:
-            - 4b111ba4-c236-4770-67bf-0f17d0230e47
-      required:
-        - name
     AssertionChecking:
       type: object
       properties:
@@ -616,9 +605,17 @@ components:
       properties:
         commands:
           description: Commands executed during this step.
-          type: array
-          items:
-            $ref: '#/components/schemas/StepCommand'
+          oneOf:
+            - $ref: '#/components/schemas/ClickCommand'
+            - $ref: '#/components/schemas/DoubleClickCommand'
+            - $ref: '#/components/schemas/FillCommand'
+            - $ref: '#/components/schemas/SelectCommand'
+            - $ref: '#/components/schemas/PressKeyCommand'
+            - $ref: '#/components/schemas/ScrollCommand'
+            - $ref: '#/components/schemas/HoverCommand'
+            - $ref: '#/components/schemas/TypeCommand'
+            - $ref: '#/components/schemas/DragCommand'
+            - $ref: '#/components/schemas/GotoCommand'
         status:
           type: string
           description: Step execution status
@@ -775,6 +772,36 @@ components:
       required:
         - url
         - steps
+    CreateTestBatch:
+      type: object
+      properties:
+        sequential:
+          type: boolean
+          description: Whether tests are executed sequentially or in parallel
+          example: true
+          default: false
+        tests:
+          type: array
+          description: Batch of tests to execute
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/CreateTest'
+              - $ref: '#/components/schemas/CreateGherkinTest'
+      required:
+        - tests
+    TestRunIds:
+      type: object
+      properties:
+        testRunIds:
+          description: List of ids
+          example:
+            - m626fwxopxr489raizu6hjgy
+            - zcuk4l13zax1piz2h73imct6
+          type: array
+          items:
+            type: string
+      required:
+        - testRunIds
     CreateGherkinTest:
       type: object
       properties:
@@ -1198,7 +1225,7 @@ components:
             report, verdict cause, or error).
           type: array
           items:
-            $ref: '#/components/schemas/StepReport'
+            type: array
         type:
           type: string
           enum:
@@ -1269,7 +1296,7 @@ components:
             report, verdict cause, or error).
           type: array
           items:
-            $ref: '#/components/schemas/StepReport'
+            type: array
         type:
           type: string
           enum:
@@ -1285,3 +1312,605 @@ components:
         - stepStatuses
         - type
         - steps
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Description of the error
+          enum:
+            - disabled_element
+            - not_visible_element
+            - internal_error
+            - not_editable_element
+            - unexpected_updated_value
+            - no_options_selected
+            - not_selectable_element
+            - non_existing_options
+            - host_not_reachable
+      required:
+        - error
+    ClickCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: click
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        button:
+          type: string
+          description: Button of the mouse clicked.
+          enum:
+            - right
+            - left
+            - wheel
+            - back
+            - forward
+          example: left
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/ClickCommandSuccess'
+      required:
+        - name
+        - button
+        - response
+    ClickCommandResponse:
+      type: object
+      properties:
+        newUrl:
+          type: string
+          description: New url after clicking
+          example: https://example.com/new-url
+    ClickCommandSuccess:
+      type: object
+      properties:
+        success:
+          description: Success response
+          type: array
+          items:
+            $ref: '#/components/schemas/ClickCommandResponse'
+      required:
+        - success
+    FillCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: fill
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        value:
+          type: string
+          description: Value used to fill the input
+          example: user@example.com
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/FillCommandSuccess'
+      required:
+        - name
+        - value
+        - response
+    FillCommandResponse:
+      type: object
+      properties:
+        newValue:
+          type: string
+          description: New value after filling
+          example: user@example.com
+      required:
+        - newValue
+    FillCommandSuccess:
+      type: object
+      properties:
+        success:
+          description: Success response
+          type: array
+          items:
+            $ref: '#/components/schemas/FillCommandResponse'
+      required:
+        - success
+    SelectCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: select
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        value:
+          type: string
+          description: Concatenated selected options
+          example: apple,lemon
+        options:
+          type: array
+          description: Selected options
+          items:
+            type: string
+          example:
+            - apple
+            - lemon
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/SelectCommandSuccess'
+      required:
+        - name
+        - value
+        - options
+        - response
+    SelectCommandResponse:
+      type: object
+      properties:
+        selectedOptions:
+          type: array
+          description: Selected options
+          items:
+            type: string
+          example:
+            - apple
+            - lemon
+      required:
+        - selectedOptions
+    SelectCommandSuccess:
+      type: object
+      properties:
+        success:
+          description: Success response
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectCommandResponse'
+      required:
+        - success
+    PressKeyCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: select
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        value:
+          type: string
+          description: Sequence of keys, comma separated
+          example: ctrl, A
+        keysSequence:
+          type: array
+          description: Sequence of keys
+          items:
+            type: string
+          example:
+            - Ctrl
+            - A
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/PressKeyCommandSuccess'
+      required:
+        - name
+        - value
+        - keysSequence
+        - response
+    PressKeyCommandResponse:
+      type: object
+      properties:
+        newUrl:
+          type: string
+          description: New url after pressing keys
+          example: https://example.com/new-url
+    PressKeyCommandSuccess:
+      type: object
+      properties:
+        success:
+          description: Success response
+          type: array
+          items:
+            $ref: '#/components/schemas/PressKeyCommandResponse'
+      required:
+        - success
+    ScrollCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: scroll
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/ScrollCommandSuccess'
+      required:
+        - name
+        - response
+    ScrollCommandResponse:
+      type: object
+      properties:
+        direction:
+          type: string
+          description: Direction of the scroll
+          enum:
+            - up
+            - down
+          example: up
+        delta:
+          type: number
+          description: Number of pixels scrolled
+          example: 500
+      required:
+        - direction
+        - delta
+    ScrollCommandSuccess:
+      type: object
+      properties:
+        success:
+          description: Success response
+          type: array
+          items:
+            $ref: '#/components/schemas/ScrollCommandResponse'
+      required:
+        - success
+    HoverCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: hover
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/HoverCommandSuccess'
+      required:
+        - name
+        - response
+    HoverCommandSuccess:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Success response
+          enum:
+            - true
+      required:
+        - success
+    TypeCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: type
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        value:
+          type: string
+          description: Value typed
+          example: John[Space]Doe
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/TypeCommandSuccess'
+      required:
+        - name
+        - value
+        - response
+    TypeCommandSuccess:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Success response
+          enum:
+            - true
+      required:
+        - success
+    DoubleClickCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: doubleClick
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        button:
+          type: string
+          description: Button of the mouse double clicked.
+          enum:
+            - right
+            - left
+            - wheel
+            - back
+            - forward
+          example: left
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/DoubleClickCommandSuccess'
+      required:
+        - name
+        - button
+        - response
+    DoubleClickCommandResponse:
+      type: object
+      properties:
+        newUrl:
+          type: string
+          description: New url after clicking
+          example: https://example.com/new-url
+    DoubleClickCommandSuccess:
+      type: object
+      properties:
+        success:
+          description: Success response
+          type: array
+          items:
+            $ref: '#/components/schemas/DoubleClickCommandResponse'
+      required:
+        - success
+    DragCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: drag
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/DragCommandSuccess'
+      required:
+        - name
+        - response
+    DragCommandSuccess:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Success response
+          enum:
+            - true
+      required:
+        - success
+    GotoCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the command
+          enum:
+            - click
+            - doubleClick
+            - fill
+            - type
+            - select
+            - hover
+            - pressKey
+            - scroll
+          example: goto
+        htmlElement:
+          type: string
+          description: >-
+            A short plain-text description of the html element targeted by the
+            command if exists
+          example: The search field
+        screenshot:
+          type: string
+          description: UUID of the screenshot captured after the command, if available
+          example:
+            - 4b111ba4-c236-4770-67bf-0f17d0230e47
+        url:
+          type: string
+          description: URL to reach
+          example: https://example.com
+        response:
+          description: Response of the command
+          oneOf:
+            - $ref: '#/components/schemas/ErrorResponse'
+            - $ref: '#/components/schemas/GotoCommandSuccess'
+      required:
+        - name
+        - url
+        - response
+    GotoCommandResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          description: Url reached
+          example: https://example.com/new-url
+      required:
+        - url
+    GotoCommandSuccess:
+      type: object
+      properties:
+        success:
+          description: Success response
+          type: array
+          items:
+            $ref: '#/components/schemas/GotoCommandResponse'
+      required:
+        - success

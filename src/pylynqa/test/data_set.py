@@ -2,6 +2,7 @@
 
 TEST_RUN_ID = "mf4zz9945nwbofv81shozwb5"
 TEST_RUN_ID_2 = "zcuk4l13zax1piz2h73imct6"
+TEST_RUN_IDS = [TEST_RUN_ID, TEST_RUN_ID_2]
 
 TEST_RUN = {
     "url": "https://example.com/",
@@ -48,9 +49,10 @@ TEST_RUN_FULL_STATUS = {
             "commands": [
                 {
                     "name": "fill",
-                    "value": "Lorem ipsum",
+                    "value": "Mairym",
                     "htmlElement": "The search field",
-                    "screenshot": ["4b111ba4-c236-4770-67bf-0f17d0230e47"],
+                    "screenshot": "4b111ba4-c236-4770-67bf-0f17d0230e47",
+                    "response": {"success": [{"newValue": "Mairym"}]},
                 }
             ],
             "status": "success",
@@ -112,11 +114,18 @@ TEST_RUNS = {
 STEP_REPORT = {
     "commands": [
         {
-            "name": "fill",
-            "value": "Lorem ipsum",
-            "htmlElement": "The search field",
-            "screenshot": ["4b111ba4-c236-4770-67bf-0f17d0230e47"],
-        }
+            "name": "type",
+            "value": "login",
+            "response": {"success": True},
+            "screenshot": "b0912feb-6abc-41b2-b2e2-466a5e41e9d4",
+        },
+        {
+            "name": "click",
+            "button": "left",
+            "htmlElement": "The submit button",
+            "screenshot": "4b111ba4-c236-4770-67bf-0f17d0230e48",
+            "response": {"error": "not_visible_element"},
+        },
     ],
     "status": "failed",
     "start": "2025-09-18T09:01:02.000Z",

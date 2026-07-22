@@ -41,6 +41,8 @@ import requests
 
 from pylynqa.models import (
     CreateAttachment,
+    CreateGherkinTest,
+    CreateTest,
     CreateTestStep,
     LynqaClientError,
     TestRunContext,
@@ -54,6 +56,7 @@ DEFAULT_TIMEOUT = 30.0  # Default network timeout (seconds) applied to every req
 ENDPOINT_HEALTH_LIVE = "/health/live"
 ENDPOINT_HEALTH_READY = "/health/ready"
 ENDPOINT_TEST_RUNS = "/testRuns"
+ENDPOINT_TEST_RUNS_BATCH = "/testRuns/batch"
 ENDPOINT_TEST_RUNS_GHERKIN = "/testRuns/gherkin"
 ENDPOINT_TEST_RUNS_STOP = "/testRuns/stop"
 ENDPOINT_TEST_RUNS_QUERY = "/testRuns/query"
@@ -240,22 +243,19 @@ class LynqaClient:
                     webhooks=["https://my-webhook.com/test-result"],
                 )
         """
-        body: dict = {"url": url, "steps": [s.to_dict() for s in steps]}
-        if name is not None:
-            body["name"] = name
-        if context is not None:
-            body["context"] = context.to_dict()
-        if guidance:
-            body["guidance"] = [g.to_dict() for g in guidance]
-        if attachments:
-            body["attachments"] = [a.to_dict() for a in attachments]
-        if webhooks:
-            body["webhooks"] = webhooks
-
+        test = CreateTest(
+            url=url,
+            steps=steps,
+            name=name,
+            context=context,
+            guidance=guidance or [],
+            attachments=attachments or [],
+            webhooks=webhooks or [],
+        )
         return self._request(
             "POST",
             ENDPOINT_TEST_RUNS,
-            json=body,
+            json=test.to_dict(),
             headers={"x-api-consumer": _PACKAGE_CONSUMER_NAME},
         ).json()
 
@@ -301,24 +301,66 @@ class LynqaClient:
                     webhooks=["https://my-webhook.com/test-result"],
                 )
         """
-        body: dict = {"url": url, "scenario": scenario}
-        if name is not None:
-            body["name"] = name
-        if context is not None:
-            body["context"] = context.to_dict()
-        if guidance:
-            body["guidance"] = [g.to_dict() for g in guidance]
-        if attachments:
-            body["attachments"] = [a.to_dict() for a in attachments]
-        if webhooks:
-            body["webhooks"] = webhooks
-
+        test = CreateGherkinTest(
+            url=url,
+            scenario=scenario,
+            name=name,
+            context=context,
+            guidance=guidance or [],
+            attachments=attachments or [],
+            webhooks=webhooks or [],
+        )
         return self._request(
             "POST",
             ENDPOINT_TEST_RUNS_GHERKIN,
-            json=body,
+            json=test.to_dict(),
             headers={"x-api-consumer": _PACKAGE_CONSUMER_NAME},
         ).json()
+
+    def add_test_batch(
+        self,
+        tests: list[CreateTest | CreateGherkinTest],
+        *,
+        sequential: bool = False,
+    ) -> list[str]:
+        r"""Execute a batch of manual and/or Gherkin tests in a single request.
+
+        Corresponds to ``POST /testRuns/batch``.
+
+        :param tests: Tests to execute. Each entry is a :class:`~pylynqa.models.CreateTest` (manual) or a
+            :class:`~pylynqa.models.CreateGherkinTest` (Gherkin).
+        :param sequential: Whether the tests are executed sequentially (``True``) or in parallel (``False``, the
+            default).
+
+        :returns: The IDs assigned to the created test runs, in request order.
+
+        :raises LynqaClientError: On API errors (400, 401, 403, 422, 429).
+
+        Example:
+
+            .. code-block:: python
+
+                run_ids = client.add_test_batch(
+                    [
+                        CreateTest(
+                            url="https://example.com",
+                            steps=[CreateTestStep(action='Click on "Login"')],
+                        ),
+                        CreateGherkinTest(
+                            url="https://example.com",
+                            scenario="Given the user is logged in\\nThen the dashboard is shown",
+                        ),
+                    ],
+                    sequential=True,
+                )
+        """
+        body = {"sequential": sequential, "tests": [t.to_dict() for t in tests]}
+        return self._request(
+            "POST",
+            ENDPOINT_TEST_RUNS_BATCH,
+            json=body,
+            headers={"x-api-consumer": _PACKAGE_CONSUMER_NAME},
+        ).json()["testRunIds"]
 
     def get_test_run(self, test_run_id: str) -> dict:
         """Retrieve a test run together with its steps.
@@ -380,12 +422,13 @@ class LynqaClient:
         Corresponds to ``GET /testRuns/{testRunId}/fullStatus``.
 
         Extends :meth:`get_test_run_status` with a ``stepStatuses`` list where each entry is a
-        :class:`StepReport`-shaped dict containing the commands executed, timestamps, assertions report, verdict cause,
-        or error.
+        :class:`~pylynqa.models.StepReport`-shaped dict containing the commands executed, timestamps, assertions
+        report, verdict cause, or error. Pass an entry to :meth:`pylynqa.models.StepReport.from_dict` to obtain a typed
+        object.
 
         :param test_run_id: ID of the test run.
 
-        :returns: Full status dict including ``stepStatuses``.
+        :returns: Full status dict including ``stepStatuses`` (a list of step report dicts).
 
         :raises LynqaClientError: ``401`` authentication failed, ``404`` if not found, ``410`` if expired, ``429`` rate
             limit.
