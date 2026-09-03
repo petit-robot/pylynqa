@@ -1,13 +1,13 @@
 info:
-  name: List Credit Purchases for a specified API Key
+  name: Get test execution credits for a specified API Key
   type: http
-  seq: 2
+  seq: 1
   tags:
-    - Account
+    - Organization
 
 http:
   method: GET
-  url: "{{baseUrl}}/account/purchases"
+  url: "{{baseUrl}}/organization/credits"
   headers:
     - name: x-api-key
       value: "{{apiKey}}"
@@ -21,9 +21,9 @@ settings:
 
 examples:
   - name: 200 Response
-    description: List of purchases
+    description: Test execution credits count
     request:
-      url: "{{baseUrl}}/account/purchases"
+      url: "{{baseUrl}}/organization/credits"
       method: GET
       headers:
         - name: x-api-key
@@ -31,13 +31,16 @@ examples:
     response:
       status: 200
       statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
       body:
-        type: text
-        data: ""
+        type: json
+        data: "0"
   - name: 401 Response
     description: Authentication failed
     request:
-      url: "{{baseUrl}}/account/purchases"
+      url: "{{baseUrl}}/organization/credits"
       method: GET
       headers:
         - name: x-api-key
@@ -51,7 +54,7 @@ examples:
   - name: 429 Response
     description: Too many requests
     request:
-      url: "{{baseUrl}}/account/purchases"
+      url: "{{baseUrl}}/organization/credits"
       method: GET
       headers:
         - name: x-api-key

@@ -81,7 +81,7 @@ class TestApiScenario:
     _INDEPENDENT_TESTS = (
         "test_health_live",
         "test_health_ready",
-        "test_get_account_credits",
+        "test_get_organization_credits",
         "test_get_purchases",
         "test_get_credit_ledger",
         "test_get_changelog_raw",
@@ -110,7 +110,7 @@ class TestApiScenario:
         # Assert
         assert result["ready"]
 
-    def test_get_account_credits(self, client):
+    def test_get_organization_credits(self, client):
         # Act
         available_credits = client.get_test_execution_credits()
         # Assert

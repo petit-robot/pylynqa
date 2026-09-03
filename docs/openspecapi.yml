@@ -5,7 +5,7 @@ paths:
       description: >-
         Returns the current status of the API along with its version and
         timestamp.
-      operationId: RootController_root
+      operationId: wtg_root
       parameters: []
       responses:
         '200':
@@ -24,7 +24,7 @@ paths:
         - Root
   /health/live:
     get:
-      operationId: HealthController_live
+      operationId: D$_live
       parameters: []
       responses:
         '200':
@@ -34,7 +34,7 @@ paths:
         - Health
   /health/ready:
     get:
-      operationId: HealthController_ready
+      operationId: D$_ready
       parameters: []
       responses:
         '200':
@@ -46,7 +46,7 @@ paths:
         - Health
   /hardMaintenance:
     get:
-      operationId: HardMaintenanceController_get
+      operationId: Gtg_get
       parameters: []
       responses:
         '200':
@@ -55,7 +55,7 @@ paths:
         - HardMaintenance
   /testRuns/{testRunId}/testSteps/{stepIndex}:
     get:
-      operationId: TestStepsController_getTestRunStepStatus
+      operationId: Sgg_getTestRunStepStatus
       parameters:
         - name: stepIndex
           required: true
@@ -93,7 +93,7 @@ paths:
         - TestSteps
   /testRuns:
     post:
-      operationId: TestRunsController_addTestRun
+      operationId: bu_addTestRun
       parameters:
         - name: x-api-consumer
           required: true
@@ -136,7 +136,7 @@ paths:
         - TestRuns
   /testRuns/batch:
     post:
-      operationId: TestRunsController_addTestBatch
+      operationId: bu_addTestBatch
       parameters:
         - name: x-api-consumer
           required: true
@@ -178,7 +178,7 @@ paths:
         - TestRuns
   /testRuns/gherkin:
     post:
-      operationId: TestRunsController_addGherkinTestRun
+      operationId: bu_addGherkinTestRun
       parameters:
         - name: x-api-consumer
           required: true
@@ -221,7 +221,7 @@ paths:
         - TestRuns
   /testRuns/{testRunId}:
     get:
-      operationId: TestRunsController_getTestRun
+      operationId: bu_getTestRun
       parameters:
         - name: testRunId
           required: true
@@ -252,7 +252,7 @@ paths:
       tags:
         - TestRuns
     delete:
-      operationId: TestRunsController_deleteTestRun
+      operationId: bu_deleteTestRun
       parameters:
         - name: testRunId
           required: true
@@ -276,7 +276,7 @@ paths:
         - TestRuns
   /testRuns/{testRunId}/status:
     get:
-      operationId: TestRunsController_getTestRunStatus
+      operationId: bu_getTestRunStatus
       parameters:
         - name: testRunId
           required: true
@@ -306,7 +306,7 @@ paths:
         - TestRuns
   /testRuns/{testRunId}/fullStatus:
     get:
-      operationId: TestRunsController_getTestRunFullStatus
+      operationId: bu_getTestRunFullStatus
       parameters:
         - name: testRunId
           required: true
@@ -338,7 +338,7 @@ paths:
         - TestRuns
   /testRuns/stop:
     post:
-      operationId: TestRunsController_stopTestRuns
+      operationId: bu_stopTestRuns
       parameters: []
       requestBody:
         required: true
@@ -367,7 +367,7 @@ paths:
         - TestRuns
   /testRuns/query:
     post:
-      operationId: TestRunsController_queryTestRuns
+      operationId: bu_queryTestRuns
       parameters:
         - name: cursor
           required: false
@@ -403,7 +403,7 @@ paths:
         - TestRuns
   /testRuns/{testRunId}/screenshots/{screenshotId}:
     get:
-      operationId: ScreenshotsController_getScreenshot
+      operationId: pgg_getScreenshot
       parameters:
         - name: testRunId
           required: true
@@ -437,9 +437,9 @@ paths:
       summary: Get the screenshot with the specified id among a specific test
       tags:
         - Screenshots
-  /account/credits:
+  /organization/credits:
     get:
-      operationId: AccountController_getTotalCredits
+      operationId: ht_getTotalCreditsByApiKey
       parameters: []
       responses:
         '200':
@@ -452,14 +452,12 @@ paths:
           description: Authentication failed
         '429':
           description: Too many requests
-      security:
-        - apiKey: []
       summary: Get test execution credits for a specified API Key
       tags:
-        - Account
-  /account/purchases:
+        - Organization
+  /organization/purchases:
     get:
-      operationId: AccountController_getPurchases
+      operationId: ht_getPurchasesByApiKey
       parameters: []
       responses:
         '200':
@@ -468,14 +466,12 @@ paths:
           description: Authentication failed
         '429':
           description: Too many requests
-      security:
-        - apiKey: []
       summary: List Credit Purchases for a specified API Key
       tags:
-        - Account
-  /account/creditLedger:
+        - Organization
+  /organization/creditLedger:
     get:
-      operationId: AccountController_getCreditLedger
+      operationId: ht_getCreditLedgerByApiKey
       parameters: []
       responses:
         '200':
@@ -484,14 +480,12 @@ paths:
           description: Authentication failed
         '429':
           description: Too many requests
-      security:
-        - apiKey: []
       summary: Get Credit Ledger for a specified API Key
       tags:
-        - Account
+        - Organization
   /changelog/raw:
     get:
-      operationId: ChangelogController_getRaw
+      operationId: BwA_getRaw
       parameters: []
       responses:
         '200':
@@ -501,7 +495,7 @@ paths:
         - Changelog
   /changelog/formatted:
     get:
-      operationId: ChangelogController_getFormatted
+      operationId: BwA_getFormatted
       parameters:
         - name: releasesCount
           required: true
@@ -532,6 +526,36 @@ info:
     All notable changes to this API will be documented here.
 
 
+    ## 2026-07-27
+
+
+    ### Added
+
+
+    - `POST /testRuns`: now has a `context.browserLocale` body property to
+    request a specific locale for the browser, default is `en_US`
+
+
+    ### Removed
+
+
+    - `POST /testRuns`: body property `context.clientLanguage` does not exist
+    anymore
+
+
+    ### Changed
+
+
+    Several API endpoints have been affected by the addition of organizations:
+
+
+    - `GET /account/credits` - has become `GET /organization/credits`
+
+    - `GET /account/purchases` - has become `GET /organization/purchases`
+
+    - `GET /account/creditLedger` - has become `GET /organization/creditLedger`
+
+
     ## 2026-07-15
 
 
@@ -539,22 +563,6 @@ info:
 
 
     - `POST /testRuns/batch`: create multiple test runs in a single request
-
-
-    ## 2026-07-06
-
-
-    ### Changed
-
-
-    - `POST /testRuns`: now has a `webhooks` body property to declare webhooks
-    to be notified of test run ended
-
-    - `POST /testRuns/gherkin`: now has a `webhooks` body property to declare
-    webhooks to be notified of test run ended
-
-    - `GET /testRuns/:id`: now has a `webhooks` body property containing the
-    status of webhooks (url, code, error)
 
   version: 1.0.0
   contact: {}
@@ -674,10 +682,14 @@ components:
     TestRunContext:
       type: object
       properties:
-        clientLanguage:
+        browserLocale:
           type: string
-          description: Client language
-          example: en-US, english, en
+          description: Browser locale code (ISO 639-1)_(ISO 3166-1 alpha-2)(.UTF-8)
+          example: fr_FR
+          examples:
+            - fr_FR
+            - en_US.UTF-8
+            - es_ES
         clientDatetime:
           type: string
           description: Client locale datetime
@@ -778,6 +790,13 @@ components:
         sequential:
           type: boolean
           description: Whether tests are executed sequentially or in parallel
+          example: true
+          default: false
+        stopOnFailure:
+          type: boolean
+          description: >-
+            Whether to skip remaining tests when one fails (only relevant when
+            sequential=true)
           example: true
           default: false
         tests:

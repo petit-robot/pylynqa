@@ -68,14 +68,15 @@ class TestRunContext:
 
     Provides locale information and secrets that the Lynqa engine can use when executing the test steps.
 
-    :param client_language: BCP-47 language tag or plain language name representing the browser locale, e.g.
-        ``'en-US'``.
+    :param browser_locale: Browser locale code, formatted ``(ISO 639-1)_(ISO 3166-1 alpha-2)(.UTF-8)``, e.g.
+        ``'fr_FR'``, ``'en_US.UTF-8'``, or ``'es_ES'``. Defaults to ``en_US`` server-side when omitted.
     :param client_datetime: Human-readable local date/time string passed to the agent, e.g. ``'Thu Feb 26 2026 09:26:12
-        GMT+0100'``. :param secrets: List of :class:`~pylynqa.models.TestData` entries that will be injected into the
-        test steps at execution time.
+        GMT+0100'``.
+    :param secrets: List of :class:`~pylynqa.models.TestData` entries that will be injected into the test steps at
+        execution time.
     """
 
-    client_language: str | None = None
+    browser_locale: str | None = None
     client_datetime: str | None = None
     secrets: list[TestData] = field(default_factory=list)
 
@@ -85,8 +86,8 @@ class TestRunContext:
         :returns: Dict representation of the context.
         """
         d: dict = {}
-        if self.client_language is not None:
-            d["clientLanguage"] = self.client_language
+        if self.browser_locale is not None:
+            d["browserLocale"] = self.browser_locale
         if self.client_datetime is not None:
             d["clientDatetime"] = self.client_datetime
         if self.secrets:

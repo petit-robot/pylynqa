@@ -20,7 +20,7 @@ http:
         "url": "https://google.com/",
         "name": "Test success Google Maps",
         "context": {
-          "clientLanguage": "fr-FR, français, fr",
+          "browserLocale": "fr_FR",
           "clientDatetime": "Thu Feb 26 2026 09:26:12 GMT+0100 (Central Europe time)"
         },
         "guidance": [

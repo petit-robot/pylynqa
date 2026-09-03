@@ -3,7 +3,7 @@
 Python client for the `Lynqa API <https://api.lynqa.smartesting.com/api-docs>`_.
 
 Lynqa is a manual test execution service. This module provides a thin, synchronous wrapper around the REST API, covering
-test run management, step inspection, screenshot retrieval, and account operations.
+test run management, step inspection, screenshot retrieval, and organization operations.
 
 **Authentication**
 
@@ -60,9 +60,9 @@ ENDPOINT_TEST_RUNS_BATCH = "/testRuns/batch"
 ENDPOINT_TEST_RUNS_GHERKIN = "/testRuns/gherkin"
 ENDPOINT_TEST_RUNS_STOP = "/testRuns/stop"
 ENDPOINT_TEST_RUNS_QUERY = "/testRuns/query"
-ENDPOINT_ACCOUNT_CREDITS = "/account/credits"
-ENDPOINT_ACCOUNT_PURCHASES = "/account/purchases"
-ENDPOINT_ACCOUNT_CREDIT_LEDGER = "/account/creditLedger"
+ENDPOINT_ORGANIZATION_CREDITS = "/organization/credits"
+ENDPOINT_ORGANIZATION_PURCHASES = "/organization/purchases"
+ENDPOINT_ORGANIZATION_CREDIT_LEDGER = "/organization/creditLedger"
 ENDPOINT_CHANGELOG_RAW = "/changelog/raw"
 ENDPOINT_CHANGELOG_FORMATTED = "/changelog/formatted"
 
@@ -322,6 +322,7 @@ class LynqaClient:
         tests: list[CreateTest | CreateGherkinTest],
         *,
         sequential: bool = False,
+        stop_on_failure: bool = False,
     ) -> list[str]:
         r"""Execute a batch of manual and/or Gherkin tests in a single request.
 
@@ -331,6 +332,8 @@ class LynqaClient:
             :class:`~pylynqa.models.CreateGherkinTest` (Gherkin).
         :param sequential: Whether the tests are executed sequentially (``True``) or in parallel (``False``, the
             default).
+        :param stop_on_failure: Whether to skip the remaining tests as soon as one fails. Only meaningful when
+            ``sequential`` is ``True``. Defaults to ``False``.
 
         :returns: The IDs assigned to the created test runs, in request order.
 
@@ -352,9 +355,14 @@ class LynqaClient:
                         ),
                     ],
                     sequential=True,
+                    stop_on_failure=True,
                 )
         """
-        body = {"sequential": sequential, "tests": [t.to_dict() for t in tests]}
+        body = {
+            "sequential": sequential,
+            "stopOnFailure": stop_on_failure,
+            "tests": [t.to_dict() for t in tests],
+        }
         return self._request(
             "POST",
             ENDPOINT_TEST_RUNS_BATCH,
@@ -561,41 +569,41 @@ class LynqaClient:
         ).json()["data"]
 
     # ------------------------------------------------------------------
-    # Account
+    # Organization
     # ------------------------------------------------------------------
 
     def get_test_execution_credits(self) -> int:
         """Get the number of test execution credits available for this API key.
 
-        Corresponds to ``GET /account/credits``.
+        Corresponds to ``GET /organization/credits``.
 
         :returns: Remaining credit count.
 
         :raises LynqaClientError: ``401`` on authentication failure, ``429`` rate limit.
         """
-        return self._request("GET", ENDPOINT_ACCOUNT_CREDITS).json()
+        return self._request("GET", ENDPOINT_ORGANIZATION_CREDITS).json()
 
     def get_purchases(self) -> list:
         """List credit purchase history for this API key.
 
-        Corresponds to ``GET /account/purchases``.
+        Corresponds to ``GET /organization/purchases``.
 
         :returns: List of purchase records.
 
         :raises LynqaClientError: ``401`` on authentication failure, ``429`` rate limit.
         """
-        return self._request("GET", ENDPOINT_ACCOUNT_PURCHASES).json()
+        return self._request("GET", ENDPOINT_ORGANIZATION_PURCHASES).json()
 
     def get_credit_ledger(self) -> list:
         """Get the full credit ledger (all credit debits and credits) for this API key.
 
-        Corresponds to ``GET /account/creditLedger``.
+        Corresponds to ``GET /organization/creditLedger``.
 
         :returns: List of ledger entries.
 
         :raises LynqaClientError: ``401`` on authentication failure, ``429`` rate limit.
         """
-        return self._request("GET", ENDPOINT_ACCOUNT_CREDIT_LEDGER).json()
+        return self._request("GET", ENDPOINT_ORGANIZATION_CREDIT_LEDGER).json()
 
     # ------------------------------------------------------------------
     # Changelog
