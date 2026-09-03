@@ -20,13 +20,13 @@ from pylynqa import (
 )
 from pylynqa.client import (
     _PACKAGE_CONSUMER_NAME,
-    ENDPOINT_ACCOUNT_CREDIT_LEDGER,
-    ENDPOINT_ACCOUNT_CREDITS,
-    ENDPOINT_ACCOUNT_PURCHASES,
     ENDPOINT_CHANGELOG_FORMATTED,
     ENDPOINT_CHANGELOG_RAW,
     ENDPOINT_HEALTH_LIVE,
     ENDPOINT_HEALTH_READY,
+    ENDPOINT_ORGANIZATION_CREDIT_LEDGER,
+    ENDPOINT_ORGANIZATION_CREDITS,
+    ENDPOINT_ORGANIZATION_PURCHASES,
     ENDPOINT_TEST_RUNS,
     ENDPOINT_TEST_RUNS_BATCH,
     ENDPOINT_TEST_RUNS_GHERKIN,
@@ -59,7 +59,7 @@ class TestAuthentication:
         # Arrange / Assert
         responses.add(
             responses.GET,
-            url(ENDPOINT_ACCOUNT_CREDITS),
+            url(ENDPOINT_ORGANIZATION_CREDITS),
             json=10,
             match=[matchers.header_matcher({"x-api-key": API_KEY})],
         )
@@ -159,7 +159,7 @@ class TestAddTestRun:
                 )
             ],
             context=TestRunContext(
-                client_language="en-US",
+                browser_locale="en_US",
                 secrets=[TestData(name="password", value="s3cr3t")],
             ),
             guidance=[TextualData(text="The user is between 18 and 49")],
@@ -180,7 +180,7 @@ class TestAddTestRun:
                 }
             ],
             "context": {
-                "clientLanguage": "en-US",
+                "browserLocale": "en_US",
                 "secrets": [{"name": "password", "value": "s3cr3t"}],
             },
             "guidance": [{"text": "The user is between 18 and 49"}],
@@ -253,7 +253,7 @@ class TestAddGherkinTestRun:
             scenario=self.SCENARIO,
             name="My Gherkin test",
             context=TestRunContext(
-                client_language="en-US",
+                browser_locale="en_US",
                 secrets=[TestData(name="password", value="s3cr3t")],
             ),
             guidance=[TextualData(text="The user is between 18 and 49")],
@@ -268,7 +268,7 @@ class TestAddGherkinTestRun:
             "scenario": self.SCENARIO,
             "name": "My Gherkin test",
             "context": {
-                "clientLanguage": "en-US",
+                "browserLocale": "en_US",
                 "secrets": [{"name": "password", "value": "s3cr3t"}],
             },
             "guidance": [{"text": "The user is between 18 and 49"}],
@@ -311,6 +311,7 @@ class TestAddTestBatch:
                 matchers.json_params_matcher(
                     {
                         "sequential": False,
+                        "stopOnFailure": False,
                         "tests": [
                             {"url": "https://example.com", "steps": [{"action": "Click login"}]},
                             {"url": "https://example.com", "scenario": "Given I am logged in"},
@@ -332,7 +333,7 @@ class TestAddTestBatch:
         assert run_ids == TEST_RUN_IDS
         assert headers(responses, 0).get("x-api-consumer") == _PACKAGE_CONSUMER_NAME
 
-    def test_sends_sequential_flag(self, client, responses):
+    def test_sends_sequential_stop_on_failure_flags(self, client, responses):
         """Test."""
         # Arrange / Assert
         responses.add(
@@ -344,6 +345,7 @@ class TestAddTestBatch:
                 matchers.json_params_matcher(
                     {
                         "sequential": True,
+                        "stopOnFailure": True,
                         "tests": [{"url": "https://example.com", "steps": [{"action": "Click login"}]}],
                     }
                 )
@@ -354,6 +356,7 @@ class TestAddTestBatch:
         run_ids = client.add_test_batch(
             [CreateTest(url="https://example.com", steps=[CreateTestStep(action="Click login")])],
             sequential=True,
+            stop_on_failure=True,
         )
 
         # Assert
@@ -672,12 +675,12 @@ class TestGetScreenshot:
         )
 
 
-class TestAccount:
+class TestOrganization:
     def test_get_test_execution_credits(self, client, responses):
         """Test."""
         # Arrange
         credits_amount = 100
-        responses.add(responses.GET, url(ENDPOINT_ACCOUNT_CREDITS), json=credits_amount)
+        responses.add(responses.GET, url(ENDPOINT_ORGANIZATION_CREDITS), json=credits_amount)
 
         # Act
         result = client.get_test_execution_credits()
@@ -697,7 +700,7 @@ class TestAccount:
         assert_raises_on_error(
             responses,
             "GET",
-            url(ENDPOINT_ACCOUNT_CREDITS),
+            url(ENDPOINT_ORGANIZATION_CREDITS),
             client.get_test_execution_credits,
             status_code,
             error,
@@ -707,7 +710,7 @@ class TestAccount:
         """Test."""
         # Arrange
         payload = [{"id": 1, "amount": 100}]  # Need to be confirmed
-        responses.add(responses.GET, url(ENDPOINT_ACCOUNT_PURCHASES), json=payload)
+        responses.add(responses.GET, url(ENDPOINT_ORGANIZATION_PURCHASES), json=payload)
 
         # Act
         result = client.get_purchases()
@@ -727,7 +730,7 @@ class TestAccount:
         assert_raises_on_error(
             responses,
             "GET",
-            url(ENDPOINT_ACCOUNT_PURCHASES),
+            url(ENDPOINT_ORGANIZATION_PURCHASES),
             client.get_purchases,
             status_code,
             error,
@@ -736,7 +739,7 @@ class TestAccount:
     def test_get_credit_ledger(self, client, responses):
         """Test."""
         # Arrange
-        responses.add(responses.GET, url(ENDPOINT_ACCOUNT_CREDIT_LEDGER), json=CREDIT_LEDGER_ENTRIES)
+        responses.add(responses.GET, url(ENDPOINT_ORGANIZATION_CREDIT_LEDGER), json=CREDIT_LEDGER_ENTRIES)
 
         # Act
         result = client.get_credit_ledger()
@@ -756,7 +759,7 @@ class TestAccount:
         assert_raises_on_error(
             responses,
             "GET",
-            url(ENDPOINT_ACCOUNT_CREDIT_LEDGER),
+            url(ENDPOINT_ORGANIZATION_CREDIT_LEDGER),
             client.get_credit_ledger,
             status_code,
             error,

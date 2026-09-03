@@ -8,7 +8,7 @@ TEST_RUN = {
     "url": "https://example.com/",
     "name": "My test name",
     "context": {
-        "clientLanguage": "en-US, english, en",
+        "browserLocale": "en_US",
         "clientDatetime": "Thu Feb 26 2026 09:26:12 GMT+0100 (Central Europe time)",
         "secrets": [{"name": "password", "value": "mys4cr4t!"}],
     },

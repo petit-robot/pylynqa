@@ -1,13 +1,13 @@
 info:
-  name: Get test execution credits for a specified API Key
+  name: Get Credit Ledger for a specified API Key
   type: http
-  seq: 1
+  seq: 3
   tags:
-    - Account
+    - Organization
 
 http:
   method: GET
-  url: "{{baseUrl}}/account/credits"
+  url: "{{baseUrl}}/organization/creditLedger"
   headers:
     - name: x-api-key
       value: "{{apiKey}}"
@@ -21,9 +21,9 @@ settings:
 
 examples:
   - name: 200 Response
-    description: Test execution credits count
+    description: List of Credit Ledger entries
     request:
-      url: "{{baseUrl}}/account/credits"
+      url: "{{baseUrl}}/organization/creditLedger"
       method: GET
       headers:
         - name: x-api-key
@@ -31,16 +31,13 @@ examples:
     response:
       status: 200
       statusText: OK
-      headers:
-        - name: Content-Type
-          value: application/json
       body:
-        type: json
-        data: "0"
+        type: text
+        data: ""
   - name: 401 Response
     description: Authentication failed
     request:
-      url: "{{baseUrl}}/account/credits"
+      url: "{{baseUrl}}/organization/creditLedger"
       method: GET
       headers:
         - name: x-api-key
@@ -54,7 +51,7 @@ examples:
   - name: 429 Response
     description: Too many requests
     request:
-      url: "{{baseUrl}}/account/credits"
+      url: "{{baseUrl}}/organization/creditLedger"
       method: GET
       headers:
         - name: x-api-key

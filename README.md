@@ -12,7 +12,7 @@
 
 Lynqa is a test execution AI Agent: you describe a test (plain steps or a Gherkin scenario) and Lynqa runs it
 against your web application. This library provides a wrapper around the REST API, covering test
-run management, step inspection, screenshot retrieval, and account operations.
+run management, step inspection, screenshot retrieval, and organization operations.
 
 ## Disclaimers
 
